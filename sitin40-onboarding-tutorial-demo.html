@@ -503,6 +503,9 @@
 .ob-coach .cx{font-family:var(--display);font-size:16px;font-weight:600;line-height:1.35;color:var(--text)}
 .ob-coach .cs{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.45}
 .hand.ob{z-index:49;display:flex}
+.hand.press{transition:transform .12s ease;transform:scale(.78) translateY(3px)}
+.opt.picked{border-color:var(--blue);background:var(--blue-dim);box-shadow:0 0 0 1px var(--blue)}
+#zone .alertline{border-bottom:1px solid var(--rule)}
 /* modal + toast + replay */
 .ob-modal{position:absolute;inset:0;z-index:70;background:oklch(0.2 0.03 262 / .55);display:flex;align-items:center;
   justify-content:center;padding:26px;opacity:0;pointer-events:none;transition:opacity .3s}
@@ -586,7 +589,7 @@
     </div>
   </div>
 
-  <div class="hand" id="hand" aria-hidden="true" style="display:none">&#128070;<span class="aib">TAP</span></div>
+  <div class="hand" id="hand" aria-hidden="true" style="display:none">&#128070;<span class="aib">AI</span></div>
 
   <div class="ob-modal" id="modal"><div class="ob-card">
     <div class="big">&#127881;</div>
@@ -726,6 +729,33 @@ function planeHTML(text){
     `</div>`;
 }
 function setZone(html){zone.innerHTML=html?`<div class="picker">${html}</div>`:'';}
+// zone with a state banner (amber / red) above the picker
+function setZoneB(bannerHtml,pickerInner){
+  zone.innerHTML=(bannerHtml||'')+(pickerInner?`<div class="picker">${pickerInner}</div>`:'');
+}
+// SITIN state banner (amber = your turn, red = reply yourself)
+function banner(kind,l1){
+  const cls=kind==='amber'?'alertline amber on':'alertline on';
+  const glyph=kind==='amber'?'&#10022;':'&#9998;';
+  return `<div class="${cls}"><span class="ring"><svg viewBox="0 0 30 30"><circle class="track" cx="15" cy="15" r="13.5"/><circle class="arc" cx="15" cy="15" r="13.5" pathLength="1" stroke-dasharray="1 0"/></svg><span class="s">${glyph}</span></span><span class="t"><span class="l1">${l1}</span></span></div>`;
+}
+const OPT=(t)=>`<button class="opt" data-t="${t}"><span class="txt">${t}</span><span class="go">&rsaquo;</span></button>`;
+// AI hand (shows the "AI" badge, not guide) — used when AI auto-picks for her
+function showHandAI(target){
+  hand.classList.add('ob');hand.classList.remove('guide','press');hand.style.display='flex';
+  const pr=phone.getBoundingClientRect(),tr=target.getBoundingClientRect();
+  hand.style.left=(tr.left-pr.left+tr.width*0.62-11)+'px';
+  hand.style.top=(tr.top-pr.top+tr.height*0.46)+'px';
+}
+// AI moves onto an option and taps it (show, then a quick press)
+async function aiAutoPick(optEl){
+  showHandAI(optEl);
+  await delay(1150);
+  optEl.classList.add('picked');
+  hand.classList.add('press');
+  await delay(340);
+  hand.classList.remove('press','ob');hand.style.display='none';
+}
 
 /* ── iOS keyboard ── */
 function popInput(){const p=$('plane');if(p){p.classList.remove('pop');void p.offsetWidth;p.classList.add('pop');}}
@@ -807,56 +837,51 @@ async function stepA(){
   $('nx').onclick=()=>stepB();
 }
 
-/* b. two options + spotlight guide */
+/* b. NORMAL (blue) — two quick replies, AI hand auto-picks one for her */
 async function stepB(){
   setZone('');
-  typing();await delay(1150);stopTyping();
+  typing();await delay(1100);stopTyping();
   msgIn("haha what are you up to tonight babe? 😏");
   await delay(500);
-  setZone(`<div class="pk-ct">Choose one reply to send</div>`+
-    `<button class="opt" id="opt0" data-t="just thinking about who&rsquo;s gonna spoil me tonight 😏"><span class="txt">just thinking about who&rsquo;s gonna spoil me tonight 😏</span><span class="go">&rsaquo;</span></button>`+
-    `<button class="opt" data-t="nothing much, kinda wish you were here with me 🥺"><span class="txt">nothing much, kinda wish you were here with me 🥺</span><span class="go">&rsaquo;</span></button>`);
-  await delay(160);
-  coach(zone.querySelector('.picker'),{text:'Pick the reply you think fits best and send it to him',sub:'Choose the line that draws him in the most 👇'});
-  zone.querySelectorAll('.opt').forEach(o=>o.onclick=()=>chooseOpt(o));
-}
-async function chooseOpt(o){
-  o.classList.add('hit');await delay(200);
-  const txt=o.getAttribute('data-t');clearCoach();setZone('');
-  msgOut(txt,{you:true,earn:0.30});
-  await delay(450);await earn(0.30,'Quick pick earned');stepC();
+  const a="just thinking about who&rsquo;s gonna spoil me tonight 😏";
+  const b="nothing much, kinda wish you were here with me 🥺";
+  setZone(`<div class="pk-ct">AI is choosing the best reply for you&hellip;</div><div id="optwrap">${OPT(a)}${OPT(b)}</div>`);
+  await delay(650);
+  const pref=zone.querySelector('.opt');
+  await aiAutoPick(pref);                 // AI hand moves in and taps it
+  const txt=pref.getAttribute('data-t');
+  setZone('');
+  msgOut(txt,{ai:true,earn:0.10});
+  await delay(450);await earn(0.10,'AI reply earned');
+  stepC();
 }
 
-/* c. manual reply — tap field raises keyboard, RETURN sends (no send button) */
+/* c. YELLOW — her turn to pick a quick reply, input kept at the bottom */
 async function stepC(){
-  typing();await delay(1150);stopTyping();
-  msgIn("you&rsquo;re trouble 😩 i like that. tell me something real about you");
+  typing();await delay(1100);stopTyping();
+  msgIn("mmm you&rsquo;re dangerous 😏 tell me what you&rsquo;d do to me");
   await delay(500);
-  setZone(planeHTML(true));
-  const doSend=async()=>{
-    const inp=$('freetext');const v=(inp.value||'').trim();
-    retSend=null;clearCoach();closeKb();setZone('');
-    msgOut(v?v.replace(/</g,'&lt;'):"you gotta earn my secrets first 😉 tell me about you",{you:true,earn:0.50});
-    await delay(450);await earn(0.50,'Manual reply earned');stepD();
-  };
-  retSend=doSend;
-  await delay(220);
-  openKb();  // input auto-raises with the keyboard
-  setTimeout(()=>{const rk=document.querySelector('#ioskb .kk.ret')||$('freetext');coach(rk,{text:'Type your reply, then tap “return” to send',sub:'No send button — the keyboard’s return key sends it',mask:false,fixedTop:0.40});},560);
-  // fallback: tapping the field re-raises the keyboard if it was closed
-  const reopen=e=>{ if(e)e.preventDefault(); if(!ioskb.classList.contains('open')) openKb(); };
-  const ft=$('freetext'), pl=$('plane');
-  ['pointerdown','touchstart','click'].forEach(ev=>ft.addEventListener(ev,reopen,{passive:false}));
-  pl.addEventListener('click',e=>{ if(!e.target.closest('#voiceBtn,#imgBtn,#giftBtn,#kbBtn')) reopen(e); });
+  const a="come closer and find out 😉";
+  const b="you&rsquo;d have to spoil me first 💅";
+  setZoneB(banner('amber','Your turn — pick a reply to send'),
+    `<div class="pk-ct">Choose one — tap to send</div><div id="optwrap">${OPT(a)}${OPT(b)}</div>${planeHTML(false)}`);
+  await delay(200);
+  coach($('optwrap'),{text:'Pick the reply you think fits best',sub:'Your turn now — tap one to send it 👇'});
+  zone.querySelectorAll('#optwrap .opt').forEach(o=>o.onclick=async()=>{
+    o.classList.add('picked');await delay(200);
+    const txt=o.getAttribute('data-t');clearCoach();setZone('');
+    msgOut(txt,{you:true,earn:0.30});
+    await delay(450);await earn(0.30,'Quick pick earned');stepD();
+  });
 }
 
-/* d. voice note — hold to record / release to send / swipe up to cancel */
+/* d. YELLOW — her turn to send a voice note (hold to record) */
 async function stepD(){
-  typing();await delay(1150);stopTyping();
-  msgIn("i love your energy 🔥 say it to me, i wanna hear your voice");
+  typing();await delay(1100);stopTyping();
+  msgIn("i wanna hear your voice babe 🔥 say something sweet");
   await delay(500);
-  setZone(planeHTML(false));
-  await delay(150);
+  setZoneB(banner('amber','Your turn — send a voice note'),planeHTML(false));
+  await delay(180);
   const showCoach=()=>coach($('voiceBtn'),{text:'Send him a voice message to earn more',sub:'Hold to record · release to send · swipe up to cancel 🎤'});
   showCoach();
   armVoice(async(dur)=>{
@@ -867,34 +892,60 @@ async function stepD(){
   });
 }
 
-/* e. "send me a pic?" -> guide selfie */
+/* e. RED — type a reply yourself: hand points at the field, tap opens the keyboard */
 async function stepE(){
-  typing();await delay(1150);stopTyping();
+  typing();await delay(1100);stopTyping();
+  msgIn("you&rsquo;re trouble 😩 tell me something real about you");
+  await delay(500);
+  setZoneB(banner('red','Reply yourself to keep earning'),planeHTML(true));
+  const doSend=async()=>{
+    const inp=$('freetext');const v=(inp.value||'').trim();
+    retSend=null;clearCoach();closeKb();setZone('');
+    msgOut(v?v.replace(/</g,'&lt;'):"you gotta earn my secrets first 😉 tell me about you",{you:true,earn:0.50});
+    await delay(450);await earn(0.50,'Manual reply earned');stepF();
+  };
+  await delay(200);
+  // the hand points at the input FIRST — the keyboard only rises after she taps it
+  coach($('freetext'),{text:'Now type a reply yourself',sub:'Tap the field to open the keyboard ✍️'});
+  const openForType=e=>{
+    if(e)e.preventDefault();
+    if(ioskb.classList.contains('open'))return;
+    clearCoach();openKb();retSend=doSend;
+    setTimeout(()=>{const rk=document.querySelector('#ioskb .kk.ret')||$('freetext');coach(rk,{text:'Type your reply, then tap “return” to send',sub:'No send button — the keyboard’s return key sends it',mask:false,fixedTop:0.40});},560);
+  };
+  const ft=$('freetext'),pl=$('plane');
+  ['pointerdown','touchstart','click'].forEach(ev=>ft.addEventListener(ev,openForType,{passive:false}));
+  pl.addEventListener('click',e=>{ if(!e.target.closest('#voiceBtn,#imgBtn,#giftBtn,#kbBtn')) openForType(e); });
+}
+
+/* f. selfie */
+async function stepF(){
+  typing();await delay(1100);stopTyping();
   msgIn("okay now i&rsquo;m obsessed 😍 send me a pic? 🥺");
   await delay(500);
   setZone(planeHTML(false));
-  await delay(150);
+  await delay(180);
   coach($('imgBtn'),{text:'Send a selfie — he&rsquo;ll be way more willing to spend on you',sub:'One photo boosts his willingness to pay 📈'});
   $('imgBtn').onclick=async()=>{
     clearCoach();setZone('');
     msgOut('<div class="ph">📸 Your selfie</div>',{you:true,earn:2.50,cls:'pb'});
-    await delay(600);await earn(2.50,'Selfie earned');stepF();
+    await delay(600);await earn(2.50,'Selfie earned');stepG();
   };
 }
 
-/* f. input bar disappears -> task complete */
-async function stepF(){
+/* g. input bar disappears -> task complete */
+async function stepG(){
   typing();await delay(1050);stopTyping();
   msgIn("you&rsquo;re stunning 😍 i&rsquo;m gonna spoil you so good tonight 💸");
   await delay(700);
   setZone('');
   $('modalTot').innerHTML='&cent;'+gained.toFixed(2);
   $('modal').classList.add('show');
-  $('modalCta').onclick=()=>{$('modal').classList.remove('show');stepG();};
+  $('modalCta').onclick=()=>{$('modal').classList.remove('show');stepH();};
 }
 
-/* g. auto-switch to next real male (if any) */
-async function stepG(){
+/* h. auto-switch to next real male (if any) */
+async function stepH(){
   if(REAL_QUEUE.length===0){
     $('toastT').textContent='No real-user messages yet';
     $('toastS').textContent="Stay online — we’ll switch you automatically when one arrives";
