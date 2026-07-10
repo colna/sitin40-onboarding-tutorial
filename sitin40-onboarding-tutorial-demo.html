@@ -691,7 +691,7 @@ function coach(target,{text,sub,mask=true}={}){
   if(mask){block=document.createElement('div');block.className='ob-block';phone.appendChild(block);
     target.classList.add('ob-spot');spot=target;}
   coachEl=document.createElement('div');coachEl.className='ob-coach';
-  coachEl.innerHTML=`<div class="ch">&#10022; ONBOARDING<span class="st">follow the guide &rarr;</span></div><div class="cx">${text}</div>${sub?`<div class="cs">${sub}</div>`:''}`;
+  coachEl.innerHTML=`<div class="cx">${text}</div>${sub?`<div class="cs">${sub}</div>`:''}`;
   phone.appendChild(coachEl);
   placeHand(target);
   const c=coachEl;
@@ -799,8 +799,7 @@ async function start(){
 
 /* a. AI auto-reply -> earnings -> tip + Next (no Block on blue) */
 async function stepA(){
-  aihint('AI is replying for you');
-  typing();await delay(1250);stopTyping();
+  await delay(550);
   msgOut("aww you&rsquo;re so sweet 🙈 my evening just got better talking to you",{ai:true,earn:0.10});
   await delay(450);
   await earn(0.10,'AI reply earned');
@@ -842,11 +841,16 @@ async function stepC(){
     msgOut(v?v.replace(/</g,'&lt;'):"you gotta earn my secrets first 😉 tell me about you",{you:true,earn:0.50});
     await delay(450);await earn(0.50,'Manual reply earned');stepD();
   };
-  $('freetext').addEventListener('click',()=>{
+  const openForType=e=>{
+    if(e){e.preventDefault();}
     if(ioskb.classList.contains('open'))return;
     clearCoach();openKb();retSend=doSend;
-    setTimeout(()=>coach($('ioskb').querySelector('.kk.ret'),{text:'Tap “return” to send',sub:'No send button — the keyboard’s return key sends it',mask:false}),120);
-  });
+    setTimeout(()=>{const rk=document.querySelector('#ioskb .kk.ret');if(rk)coach(rk,{text:'Tap “return” to send',sub:'No send button — the keyboard’s return key sends it',mask:false});},160);
+  };
+  // tap the field (or anywhere on the bar) raises the keyboard — pointer/touch for mobile, click for desktop
+  const ft=$('freetext'), pl=$('plane');
+  ['pointerdown','touchstart','click'].forEach(ev=>ft.addEventListener(ev,openForType,{passive:false}));
+  pl.addEventListener('click',e=>{ if(!e.target.closest('#voiceBtn,#imgBtn,#giftBtn,#kbBtn')) openForType(e); });
 }
 
 /* d. voice note — hold to record / release to send / swipe up to cancel */
