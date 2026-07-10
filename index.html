@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SITIN 4.0 — 新手引导教学 · Onboarding tutorial</title>
+<title>SITIN 4.0 — Onboarding tutorial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
+    /* editorial white + royal blue — same system as luncharity-demo */
     --stage:oklch(0.955 0.004 250);
     --bg:#ffffff;
     --raised:oklch(0.97 0.004 250);
@@ -23,21 +24,21 @@
     --amber:oklch(0.62 0.13 70);
     --amber-deep:oklch(0.52 0.12 70);
     --amber-dim:oklch(0.68 0.155 72 / .13);
-    --violet:oklch(0.52 0.2 292);
-    --violet-dim:oklch(0.52 0.2 292 / .1);
+    --red:oklch(0.5 0.19 25);
+    --red-deep:oklch(0.4 0.15 25);
+    --red-dim:oklch(0.5 0.19 25 / .1);
     --onaccent:#ffffff;
     --sans:'Inter','Helvetica Neue',system-ui,sans-serif;
     --display:'Fraunces',Georgia,serif;
     --mono:'SF Mono','Roboto Mono',ui-monospace,Menlo,monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  .num{font-variant-numeric:tabular-nums}
   body{
     font-family:var(--sans); color:var(--text);
-    background:var(--stage); min-height:100vh; overflow:hidden;
+    background:var(--stage); height:100vh; overflow:hidden;
     display:flex; align-items:center; justify-content:center; gap:26px; padding:20px;
   }
-  button{font-family:inherit}
+  .num{font-variant-numeric:tabular-nums}
   button:focus-visible,[role="button"]:focus-visible,input:focus-visible{outline:2px solid var(--blue); outline-offset:2px}
 
   /* ── phone frame ── */
@@ -51,154 +52,392 @@
   .notch{position:absolute; top:0; left:50%; transform:translateX(-50%);
     width:130px; height:24px; background:oklch(0.16 0.02 262); border-radius:0 0 16px 16px; z-index:40}
 
-  /* ── top bar: avatar queue + balance ── */
-  .top{flex:0 0 auto; display:flex; align-items:center; gap:10px; padding:32px 14px 8px; border-bottom:1px solid var(--rule)}
-  .rail{flex:1 1 auto; display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; padding:2px 0 10px; margin-bottom:-8px}
+  /* ── compact top bar: live + queue + balance, one row ── */
+  .top{flex:0 0 auto; display:flex; align-items:center; gap:10px; padding:32px 14px 8px;
+    border-bottom:1px solid var(--rule)}
+  .rail{flex:1 1 auto; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding:2px 0 10px; margin-bottom:-8px}
   .rail::-webkit-scrollbar{display:none}
-  .q{flex:0 0 auto; width:34px; height:34px; position:relative; cursor:pointer; border:none; background:none; padding:0}
-  .q .fa{position:absolute; inset:4px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    color:#fff; font-size:12px; font-weight:700; font-family:var(--sans)}
-  .q svg{position:absolute; inset:0; width:34px; height:34px; transform:rotate(-90deg)}
+  .q{flex:0 0 auto; width:32px; height:32px; position:relative; cursor:pointer; border:none; background:none; padding:0; transition:opacity .25s}
+  .q img{width:26px; height:26px; border-radius:50%; object-fit:cover; position:absolute; inset:3px; display:block}
+  .q svg{position:absolute; inset:0; width:32px; height:32px; transform:rotate(-90deg)}
   .q svg circle{fill:none; stroke-width:2.5}
   .q .track{stroke:var(--rule)}
   .q .arc{stroke:transparent}
-  .q.b .arc{stroke:var(--blue)} .q.v .arc{stroke:var(--violet)}
-  .q .bdg{position:absolute; top:-3px; right:-4px; min-width:13px; height:13px; border-radius:7px;
-    background:var(--blue); color:var(--onaccent); font-size:8px; font-weight:700;
+  .q.y .arc{stroke:oklch(0.58 0.14 70)}
+  .q.r .arc{stroke:var(--red)}
+  .q.b .arc{stroke:var(--blue)}
+  .q .bdg{position:absolute; top:-2px; right:-3px; min-width:12px; height:12px; border-radius:6px;
+    background:var(--blue); color:var(--onaccent); font-size:7.5px; font-weight:700;
     display:flex; align-items:center; justify-content:center; padding:0 2px}
-  .q .tagnew{position:absolute; top:-9px; left:50%; transform:translateX(-50%); font-family:var(--mono);
-    font-size:6.5px; letter-spacing:.06em; font-weight:700; color:var(--violet); white-space:nowrap}
-  .q.cur::after{content:''; position:absolute; left:50%; bottom:-9px; transform:translateX(-50%);
-    border:4px solid transparent; border-bottom:none; border-top:5px solid var(--violet); animation:curin .3s ease}
+  /* the "you are here" caret — a quiet pointer from the active avatar down to the name below */
+  .q.cur::after{content:''; position:absolute; left:50%; bottom:-8px; transform:translateX(-50%);
+    border:4px solid transparent; border-bottom:none; border-top:5px solid var(--muted);
+    animation:curin .3s ease}
+  @keyframes curin{0%{opacity:0; transform:translateX(-50%) translateY(-3px)}100%{opacity:1; transform:translateX(-50%) translateY(0)}}
+  .q.y.cur::after{border-top-color:oklch(0.58 0.14 70)}
+  .q.r.cur::after{border-top-color:var(--red)}
   .q.b.cur::after{border-top-color:var(--blue)}
-  @keyframes curin{0%{opacity:0}100%{opacity:1}}
   .bal{flex:0 0 auto; text-align:right; position:relative}
   .bal .amt{font-family:var(--display); font-weight:600; font-size:19px; line-height:1; color:var(--text)}
   .bal .amt sup{font-size:11px; top:-.4em; position:relative; color:var(--muted); font-weight:500}
+  /* odometer roll: old value slides up and out, new value rises in from below */
   .bal .amtwrap{display:inline-block; position:relative; overflow:hidden; vertical-align:bottom}
-  .bal .lbl{font-family:var(--mono); font-size:8px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); margin-top:3px}
-  .roll-in{animation:rollin .4s cubic-bezier(.16,1,.3,1)}
+  .bal .amtwrap #balAmt{display:inline-block}
+  .bal .roll-in{animation:rollin .4s cubic-bezier(.16,1,.3,1)}
   @keyframes rollin{0%{transform:translateY(35%); opacity:0}100%{transform:translateY(0); opacity:1}}
-  .roll-out{position:absolute; left:0; top:0; display:inline-block; animation:rollout .4s cubic-bezier(.16,1,.3,1) forwards}
+  .bal .roll-out{position:absolute; left:0; top:0; display:inline-block;
+    animation:rollout .4s cubic-bezier(.16,1,.3,1) forwards}
   @keyframes rollout{0%{transform:translateY(0); opacity:1}100%{transform:translateY(-35%); opacity:0}}
 
-  /* ── client header ── */
-  .client{flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:9px 16px; border-bottom:1px solid var(--rule)}
-  .client .n{font-size:13.5px; font-weight:600; white-space:nowrap}
-  .client .v{font-size:11px; color:var(--muted)}
-  .client .v b{color:var(--text); font-weight:600}
-  .client .ntag{font-family:var(--mono); font-size:8.5px; letter-spacing:.08em; font-weight:700; color:var(--violet);
-    background:var(--violet-dim); border-radius:999px; padding:3px 8px; margin-left:auto}
+  /* ── conversation panes: the handoff slide ── */
+  .convo{flex:1 1 auto; position:relative; overflow:hidden; min-height:0; display:flex; flex-direction:column}
+  .pane{position:absolute; inset:0; display:flex; flex-direction:column; background:var(--bg)}
+  /* no page-slide on switch — the chat swaps instantly, only the rail avatars animate */
+  .pane.exit-left{opacity:0; pointer-events:none}
+  .pane.in-right{opacity:0; pointer-events:none}
+  .pane.in-right.enter{opacity:1; pointer-events:auto}
 
-  /* ── chat ── */
-  .chat{flex:1 1 auto; overflow-y:auto; padding:14px 16px 10px; display:flex; flex-direction:column; gap:10px; scrollbar-width:none}
+  /* ── slim client header ── */
+  .client{flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:8px 16px;
+    border-bottom:1px solid var(--rule)}
+  .client .n{font-size:13.5px; font-weight:600; white-space:nowrap; flex:0 0 auto}
+  .client .v{font-size:11px; color:var(--muted); flex:0 0 auto; white-space:nowrap; margin-left:4px}
+  .client .v b{color:var(--text); font-weight:600}
+
+  /* ── chat: the visual center ── */
+  .chat{flex:1 1 auto; overflow-y:auto; padding:14px 16px 10px; display:flex; flex-direction:column; gap:10px;
+    scrollbar-width:none}
   .chat::-webkit-scrollbar{display:none}
-  .day{align-self:center; font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); padding:2px 0}
-  .msg{max-width:80%; display:flex; flex-direction:column; gap:3px; animation:msgin .34s cubic-bezier(.16,1,.3,1)}
-  @keyframes msgin{0%{opacity:0; transform:translateY(9px)}100%{opacity:1; transform:none}}
+  .day{align-self:center; font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--faint); padding:2px 0}
+  .msg{max-width:78%; display:flex; flex-direction:column; gap:3px}
   .msg .bub{padding:10px 14px; font-size:14.5px; line-height:1.45; border-radius:17px; word-break:break-word}
   .msg.in{align-self:flex-start}
   .msg.in .bub{background:var(--raised-2); color:var(--text); border-bottom-left-radius:5px}
   .msg.out{align-self:flex-end; align-items:flex-end}
   .msg.out .bub{background:var(--blue); color:var(--onaccent); border-bottom-right-radius:5px}
-  .msg.out.ai .bub{background:linear-gradient(135deg, var(--violet), var(--blue))}
   .msg .meta{display:flex; align-items:center; gap:6px; font-size:10px; color:var(--faint); padding:0 4px}
-  .msg .meta .ai{font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; color:var(--violet);
-    border:1px solid var(--violet-dim); border-radius:4px; padding:1px 4px}
+  .msg .meta .ai{font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; color:var(--muted);
+    border:1px solid var(--rule); border-radius:4px; padding:1px 4px}
+  .msg .meta .earn{color:var(--blue); font-weight:600}
+  /* voice note bubble */
   .bub.vb{display:flex; align-items:center; gap:10px}
-  .vb .pl{width:22px; height:22px; border-radius:50%; background:oklch(1 0 0 / .22); flex:0 0 auto; display:flex; align-items:center; justify-content:center}
-  .vb .pl svg{width:11px; height:11px; fill:#fff}
+  .vb .pl{width:22px; height:22px; border-radius:50%; background:oklch(1 0 0 / .22); flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center}
   .vb .w{display:flex; align-items:center; gap:2.5px; height:18px}
   .vb .w i{width:2.5px; background:currentColor; border-radius:2px; display:block; opacity:.9}
   .vb .dur{font-size:12px; opacity:.85}
-  .bub.pb{padding:5px}
-  .pb .ph{width:150px; height:196px; border-radius:13px; display:flex; align-items:flex-end; padding:9px;
-    font-size:11px; font-weight:600; color:#fff; background:linear-gradient(155deg,#fda4af,#c084fc,#818cf8)}
-  /* typing */
-  .typing{align-self:flex-start; display:flex; gap:4px; padding:12px 15px; background:var(--raised-2); border-radius:17px; border-bottom-left-radius:5px; width:fit-content}
-  .typing i{width:6px; height:6px; border-radius:50%; background:var(--faint); animation:tp 1.2s infinite}
-  .typing i:nth-child(2){animation-delay:.15s} .typing i:nth-child(3){animation-delay:.3s}
-  @keyframes tp{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
-  .aihint{align-self:center; display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:9px;
-    letter-spacing:.12em; text-transform:uppercase; color:var(--violet); padding:2px 0}
-  .aihint::before,.aihint::after{content:''; height:1px; width:26px; background:oklch(0.52 0.2 292 / .3)}
 
-  /* ── picker / dynamic zone ── */
-  .picker{flex:0 0 auto; border-top:1px solid var(--rule); padding:10px 16px 8px; background:var(--bg); position:relative; z-index:20}
+  /* ── inline video suggestion — realness proof that pays ── */
+  .vccard{align-self:stretch; flex:0 0 auto; display:flex; flex-direction:column; gap:9px;
+    padding:13px 15px; border-radius:18px; transform-origin:center;
+    background:linear-gradient(180deg, #fff, oklch(0.46 0.19 262 / .07));
+    box-shadow:0 0 0 1.5px var(--blue), 0 14px 34px oklch(0.46 0.19 262 / .24);
+    animation:vcin .55s cubic-bezier(.34,1.56,.64,1), vbreathe 2.6s ease-out .9s infinite}
+  @keyframes vcin{0%{opacity:0; transform:translateY(22px) scale(.92)}100%{opacity:1; transform:translateY(0) scale(1)}}
+  /* breathing lives on the card frame, never on the button — a soft ripple that keeps pulling the eye */
+  @keyframes vbreathe{
+    0%{box-shadow:0 0 0 1.5px var(--blue), 0 14px 34px oklch(0.46 0.19 262 / .24), 0 0 0 0 oklch(0.46 0.19 262 / .3)}
+    70%{box-shadow:0 0 0 1.5px var(--blue), 0 14px 34px oklch(0.46 0.19 262 / .24), 0 0 0 14px oklch(0.46 0.19 262 / 0)}
+    100%{box-shadow:0 0 0 1.5px var(--blue), 0 14px 34px oklch(0.46 0.19 262 / .24), 0 0 0 0 oklch(0.46 0.19 262 / 0)}}
+  .vccard .vhead{display:flex; align-items:center; gap:8px}
+  .vccard .vic{width:30px; height:30px; border-radius:50%; background:var(--blue-dim); color:var(--blue);
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto}
+  .vccard .vic svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+  .vccard .vrate{margin-left:auto; font-family:var(--mono); font-size:10.5px; color:var(--blue); font-weight:600;
+    background:var(--blue-dim); border-radius:999px; padding:3px 9px; white-space:nowrap}
+  .vccard .vt{flex:1 1 auto; min-width:0; font-family:var(--display); font-size:15.5px; font-weight:600; line-height:1.2; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .vccard .vcta{width:100%; margin-top:2px; padding:12px 16px; border:none; border-radius:999px; background:var(--blue);
+    color:var(--onaccent); font-family:var(--sans); font-size:14px; font-weight:600; letter-spacing:.1px;
+    display:flex; align-items:center; justify-content:center; gap:7px; cursor:pointer; transition:background .15s}
+  /* no breathing glow — steady button; the hand points here to draw the eye */
+  .vccard .vcta:hover{background:var(--blue-deep)}
+  .vccard .vcta svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+
+  /* ── the pick: two options, hero of the screen ── */
+  .picker{flex:0 0 auto; border-top:1px solid var(--rule); padding:10px 16px 8px; background:var(--bg);
+    position:relative; z-index:43; transition:box-shadow .34s cubic-bezier(.2,.9,.25,1)}
+  /* keyboard up: the input bar detaches and floats on top of the keyboard */
+  .picker.kbup{box-shadow:0 -8px 24px oklch(0.30 0.04 262 / .12), 0 -1px 0 var(--rule)}
+  /* spring the input bar up — fires when the keyboard rises and when the hand lands on it */
+  .pk-own.pop{animation:inputPop .44s cubic-bezier(.2,.9,.25,1) both}
+  @keyframes inputPop{
+    0%{transform:translateY(16px); opacity:.65}
+    55%{transform:translateY(-4px); opacity:1}
+    78%{transform:translateY(1.5px)}
+    100%{transform:translateY(0); opacity:1}}
+  /* countdown moved into the alertline banner — pk-head retired */
+  .pk-head{display:none; justify-content:flex-end; margin-bottom:7px}
+  .pk-head .cd{font-family:var(--display); font-size:19px; font-weight:600; line-height:1;
+    color:var(--text); font-variant-numeric:tabular-nums}
+  .pk-head .cd.warn{color:var(--amber)}
   .opt{width:100%; display:flex; align-items:center; gap:11px; text-align:left; margin-bottom:7px;
-    background:var(--bg); border:1px solid var(--rule); border-radius:13px; padding:12px 15px; cursor:pointer;
-    transition:border-color .15s, background .15s, box-shadow .15s}
+    background:var(--bg); border:1px solid var(--rule); border-radius:13px; padding:12px 15px;
+    cursor:pointer; font-family:var(--sans); transition:border-color .15s, background .15s, box-shadow .15s}
   .opt:hover{border-color:oklch(0.6 0.1 262)}
-  .opt .tg{flex:0 0 auto; font-family:var(--mono); font-size:8.5px; font-weight:700; letter-spacing:.06em; color:var(--blue);
-    background:var(--blue-dim); border-radius:5px; padding:3px 6px}
   .opt .txt{flex:1 1 auto; font-size:14px; line-height:1.4; color:var(--text)}
   .opt .go{flex:0 0 auto; color:var(--faint); font-size:15px}
+  .opt.pref{border-color:var(--blue); background:var(--blue-dim); box-shadow:0 0 0 1px var(--blue)}
   .opt.hit{border-color:var(--blue); background:var(--blue-dim); box-shadow:0 0 0 1px var(--blue)}
-  .pk-ct{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); text-align:center; margin-bottom:9px}
 
-  /* input plane — voice-first */
-  .pk-own{display:flex; align-items:center; gap:10px; margin-top:2px}
-  .pk-own.pop{animation:inputPop .44s cubic-bezier(.2,.9,.25,1) both}
-  @keyframes inputPop{0%{transform:translateY(16px); opacity:.65}55%{transform:translateY(-4px); opacity:1}100%{transform:translateY(0)}}
-  .icob{width:40px; height:40px; border-radius:50%; border:1px solid var(--rule); background:var(--bg); color:var(--muted);
-    cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto; transition:color .15s, border-color .15s}
+  /* AI hand — hovers on its pick, never taps (show, don't tell) */
+  .hand{position:absolute; z-index:45; font-size:25px; line-height:1; pointer-events:none;
+    filter:drop-shadow(0 4px 7px oklch(0.3 0.04 262 / .35)); animation:bob 1.15s ease-in-out infinite;
+    transition:left .55s cubic-bezier(.16,1,.3,1), top .55s cubic-bezier(.16,1,.3,1)}
+  .hand .aib{position:absolute; top:-7px; left:16px; background:var(--blue); color:var(--onaccent);
+    font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:.06em;
+    padding:1px 5px; border-radius:7px}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .hand.guide .aib{display:none}
+
+  /* ── input plane: voice-first — keyboard toggle left, blue voice pill, camera + gift right ── */
+  .pk-own{display:flex; align-items:center; gap:8px; margin-top:2px}
+  .icob{width:36px; height:36px; border-radius:50%; border:1px solid var(--rule); background:var(--bg);
+    color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto; transition:color .15s, border-color .15s}
   .icob:hover{color:var(--blue); border-color:oklch(0.6 0.1 262)}
-  .icob svg{width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
+  .icob svg{width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
   .voice{flex:1 1 auto; min-width:0; height:44px; border-radius:999px; border:none; background:var(--blue-dim);
-    box-shadow:0 2px 8px oklch(0.46 0.19 262 / .1); color:var(--blue); font-size:14px; font-weight:600; cursor:pointer;
+    box-shadow:0 2px 8px oklch(0.46 0.19 262 / .1);
+    color:var(--blue); font-family:var(--sans); font-size:14px; font-weight:600; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:8px; padding:0 14px; transition:background .15s}
+  .voice:hover{background:oklch(0.46 0.19 262 / .11)}
   .voice svg{width:17px; height:17px; flex:0 0 auto; stroke:currentColor; fill:none; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round}
-  .pk-own input{display:none; flex:1 1 auto; height:44px; border-radius:999px; border:1px solid var(--rule); background:var(--bg);
-    color:var(--text); font-family:var(--sans); font-size:13.5px; padding:0 16px; min-width:0}
+  .voice .chev{display:none; width:15px; height:15px}
+  .voice .wave{display:none; flex:1 1 auto; min-width:0; align-items:center; gap:2px; height:24px; overflow:hidden}
+  .voice .wave i{flex:0 0 auto; width:2px; border-radius:1px; background:var(--blue); transform-origin:center;
+    animation:wv 1s ease-in-out infinite}
+  .voice .wave i:nth-child(1){height:8px; animation-delay:0.00s}
+  .voice .wave i:nth-child(2){height:14px; animation-delay:0.07s}
+  .voice .wave i:nth-child(3){height:22px; animation-delay:0.14s}
+  .voice .wave i:nth-child(4){height:10px; animation-delay:0.21s}
+  .voice .wave i:nth-child(5){height:26px; animation-delay:0.28s}
+  .voice .wave i:nth-child(6){height:16px; animation-delay:0.35s}
+  .voice .wave i:nth-child(7){height:9px; animation-delay:0.42s}
+  .voice .wave i:nth-child(8){height:20px; animation-delay:0.49s}
+  .voice .wave i:nth-child(9){height:24px; animation-delay:0.56s}
+  .voice .wave i:nth-child(10){height:12px; animation-delay:0.63s}
+  .voice .wave i:nth-child(11){height:28px; animation-delay:0.70s}
+  .voice .wave i:nth-child(12){height:15px; animation-delay:0.77s}
+  .voice .wave i:nth-child(13){height:9px; animation-delay:0.84s}
+  .voice .wave i:nth-child(14){height:18px; animation-delay:0.01s}
+  .voice .wave i:nth-child(15){height:22px; animation-delay:0.08s}
+  .voice .wave i:nth-child(16){height:11px; animation-delay:0.15s}
+  @keyframes wv{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.4)}}
+  .voice.rec{justify-content:flex-start}
+  .voice.rec .wave{display:flex}
+  .voice.rec .chev{display:block}
+  .voice.cancel{background:var(--red-dim); color:var(--red)}
+  .voice.cancel .wave i{background:var(--red)}
+  .voice.cancel .chev{stroke:var(--red)}
+
+  /* ── recording overlay scrim ── */
+  .rec-scrim{position:absolute; inset:0; z-index:34; background:oklch(0.22 0.03 262 / .35);
+    opacity:0; pointer-events:none; transition:opacity .2s}
+  .rec-scrim.show{opacity:1; pointer-events:auto}
+
+  /* ── floating cancel target for voice recording ── */
+  .rec-target{position:absolute; left:50%; transform:translateX(-50%) scale(0);
+    width:48px; height:48px; border-radius:50%; background:var(--bg);
+    border:1.5px solid oklch(0.85 0.01 258);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:transform .25s cubic-bezier(.16,1,.3,1), background .15s, border-color .15s, opacity .2s;
+    z-index:36; pointer-events:none;
+    box-shadow:0 4px 16px oklch(0.3 0.04 262 / .12)}
+  .rec-target.show{transform:translateX(-50%) scale(1); opacity:1}
+  .rec-target.hot{transform:translateX(-50%) scale(1.3); background:var(--red); border-color:var(--red);
+    box-shadow:0 0 0 8px oklch(0.58 0.2 22 / .15), 0 4px 16px oklch(0.3 0.04 262 / .18)}
+  .rec-target svg{width:20px; height:20px; stroke:var(--muted); fill:none;
+    stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; transition:stroke .15s}
+  .rec-target.hot svg{stroke:var(--onaccent)}
+  .pk-own input{display:none; flex:1 1 auto; height:44px; border-radius:999px; border:1px solid var(--rule);
+    background:var(--bg); color:var(--text); font-family:var(--sans); font-size:13.5px; padding:0 16px; min-width:0}
   .pk-own input::placeholder{color:var(--muted)}
   .send{width:40px; height:40px; border-radius:50%; border:none; background:var(--blue); color:var(--onaccent);
     cursor:pointer; display:none; align-items:center; justify-content:center; flex:0 0 auto; transition:background .15s}
-  .send:hover{background:var(--blue-deep)} .send svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-  .pk-own.text .voice{display:none} .pk-own.text input{display:block} .pk-own.text .send{display:flex}
+  .send:hover{background:var(--blue-deep)}
+  .pk-own.text .voice{display:none}
+  .pk-own.text input{display:block}
+  .pk-own.text .send{display:flex}
+  .icob .ic-kb{display:block} .icob .ic-mic{display:none}
+  .pk-own.text .icob .ic-kb{display:none} .pk-own.text .icob .ic-mic{display:block}
 
-  /* tip card + next (step a) */
-  .tip{display:flex; gap:10px; align-items:flex-start; background:var(--violet-dim); border:1px solid oklch(0.52 0.2 292 / .2);
-    border-radius:14px; padding:11px 13px; margin-bottom:9px; animation:msgin .34s}
-  .tip .ti{font-size:18px; flex:0 0 auto; line-height:1.2}
-  .tip .tx{font-size:12.5px; line-height:1.45; color:var(--text); font-weight:500}
-  .nextbtn{width:100%; height:46px; border:none; border-radius:999px; background:var(--blue); color:var(--onaccent);
-    font-size:14.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
-    box-shadow:0 8px 22px oklch(0.46 0.19 262 / .28); transition:background .15s}
-  .nextbtn:hover{background:var(--blue-deep)}
+  /* next-unread: appears above the input once her red reply lands and someone else is waiting */
+  .nxrow{display:none; justify-content:flex-end; padding:0 0 8px}
+  .nxrow.show{display:flex}
+  .nextbtn{display:flex; align-items:center; gap:7px; border:1px solid var(--rule); background:var(--bg);
+    border-radius:999px; padding:4px 6px 4px 5px; cursor:pointer; font-family:var(--sans);
+    font-size:12px; font-weight:600; color:var(--blue);
+    box-shadow:0 2px 10px oklch(0.3 0.04 262 / .08); transition:border-color .15s, background .15s}
+  .nextbtn:hover{background:var(--blue-dim); border-color:oklch(0.46 0.19 262 / .3)}
+  .nextbtn img{width:20px; height:20px; border-radius:50%; object-fit:cover; display:block}
+  .nextbtn .u{min-width:14px; height:14px; border-radius:7px; background:var(--blue); color:var(--onaccent);
+    font-size:8.5px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 3px}
+  .nextbtn .ch{color:var(--faint); font-weight:600; margin-right:2px}
+  .nxrow.show .nextbtn{animation:nxtin .4s cubic-bezier(.16,1,.3,1)}
+  @keyframes nxtin{0%{opacity:0; transform:translateX(10px)}100%{opacity:1; transform:translateX(0)}}
 
-  /* ── coach overlay (game-like guidance) ── */
-  .block{position:absolute; inset:0; z-index:44; background:transparent}
-  .spot{position:relative; z-index:46 !important;
-    box-shadow:0 0 0 9999px oklch(0.20 0.03 262 / .58), 0 0 0 3px oklch(0.52 0.2 292 / .9), 0 0 26px oklch(0.52 0.2 292 / .5) !important;
-    border-radius:14px; animation:spotp 1.7s ease-in-out infinite}
-  @keyframes spotp{0%,100%{box-shadow:0 0 0 9999px oklch(0.20 0.03 262 / .58),0 0 0 3px oklch(0.52 0.2 292 / .9),0 0 20px oklch(0.52 0.2 292 / .4)}
-    50%{box-shadow:0 0 0 9999px oklch(0.20 0.03 262 / .58),0 0 0 4px oklch(0.56 0.21 292 / 1),0 0 34px oklch(0.56 0.21 292 / .65)}}
-  .coach{position:absolute; z-index:48; left:18px; right:18px; background:var(--bg); border-radius:17px; padding:14px 16px;
-    box-shadow:0 18px 44px oklch(0.2 0.03 262 / .4); animation:cpop .34s cubic-bezier(.2,1,.3,1)}
-  @keyframes cpop{0%{opacity:0; transform:translateY(10px) scale(.96)}100%{opacity:1; transform:none}}
-  .coach .ch{display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:8.5px; letter-spacing:.12em;
-    text-transform:uppercase; color:var(--violet); margin-bottom:7px}
-  .coach .ch .st{display:inline-flex; align-items:center; gap:4px; margin-left:auto; color:var(--faint)}
-  .coach .cx{font-family:var(--display); font-size:16px; font-weight:600; line-height:1.35; color:var(--text)}
-  .coach .cs{font-size:11.5px; color:var(--muted); margin-top:5px; line-height:1.45}
-  .finger{position:absolute; z-index:48; font-size:27px; filter:drop-shadow(0 4px 7px oklch(0.3 0.04 262 / .35));
-    animation:bob 1.15s ease-in-out infinite; pointer-events:none}
-  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+  /* red window: no canned options, no picker countdown — the banner carries it */
+  .picker.red .opt,.picker.red .pk-head{display:none}
+  .picker.expired .opt,.picker.expired .pk-head{display:none}
+  .picker.wait .opt,.picker.wait .pk-head,.picker.wait .pk-own{display:none}
+  .picker.manual .opt,.picker.manual .pk-head{display:none}
+  /* sent row after the coin lands — same bottom UI as the exposure demo */
+  .pk-done{display:none; align-items:center; gap:10px; padding:12px 2px 10px}
+  .pk-done .ok{width:26px; height:26px; border-radius:50%; background:var(--blue); color:var(--onaccent);
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto}
+  .pk-done .d1{font-size:13px; font-weight:600}
+  .pk-done .d2{font-size:11px; color:var(--muted); margin-top:1px}
+  .picker.wait .pk-done{display:flex}
+  .nxt{display:none; align-items:center; gap:7px; margin-left:auto; flex:0 0 auto;
+    font-size:12px; font-weight:600; color:var(--blue); background:var(--blue-dim);
+    border-radius:999px; padding:4px 10px 4px 5px}
+  .nxt img{width:20px; height:20px; border-radius:50%; object-fit:cover; display:block}
+  .nxt .u{min-width:14px; height:14px; border-radius:7px; background:var(--blue); color:var(--onaccent);
+    font-size:8.5px; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 3px}
+  .nxt.show{display:flex; animation:nxtin .4s cubic-bezier(.16,1,.3,1)}
 
-  /* ── earnings coin popup ── */
-  .earnpop{position:absolute; inset:0; z-index:60; display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0}
-  .earnpop.show{opacity:1} .earnpop.hide{opacity:0; transition:opacity .35s}
+  /* ── red banner: sits above the picker, ring carries the countdown ── */
+  .alertline{display:none; flex:0 0 auto; align-items:center; gap:9px; padding:9px 16px;
+    border-top:1px solid var(--rule); background:var(--red-dim)}
+  .alertline.on{display:flex}
+  .alertline .ring{width:30px; height:30px; position:relative; flex:0 0 auto}
+  .alertline .ring svg{position:absolute; inset:0; width:30px; height:30px; transform:rotate(-90deg)}
+  .alertline .ring circle{fill:none; stroke-width:2.5}
+  .alertline .ring .track{stroke:var(--rule)}
+  .alertline .ring .arc{stroke:var(--red)}
+  .alertline .ring .s{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:9.5px; font-weight:600; color:var(--red-deep)}
+  .alertline .t{flex:1 1 auto; min-width:0}
+  .alertline .t .l1{display:block; font-size:12.5px; font-weight:600; color:var(--red-deep)}
+  .alertline .t .l2{display:none; font-size:11px; line-height:1.4; color:var(--muted); margin-top:1px}
+  /* timer-up state: ring swaps for the hang-up icon, copy changes */
+  .alertline .upic{width:30px; height:30px; border-radius:50%; border:1px solid oklch(0.5 0.19 25 / .45);
+    color:var(--red-deep); flex:0 0 auto; display:none; align-items:center; justify-content:center}
+  .alertline .upic svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.9;
+    stroke-linecap:round; stroke-linejoin:round}
+  .alertline.up .ring{display:none}
+  .alertline.up .upic{display:flex}
+  .alertline.up .t .l2{display:block}
+  /* amber variant — restored reply window, same banner form as red */
+  .alertline.amber{background:var(--amber-dim)}
+  .alertline.amber .ring .arc{stroke:var(--amber)}
+  .alertline.amber .ring .s{color:var(--amber-deep)}
+  .alertline.amber .t .l1{color:var(--amber-deep)}
+
+  /* ── flagged-as-AI sheet: slides up, holds 3s, dismisses itself ── */
+  .scrim{position:absolute; inset:0; z-index:50; background:oklch(0.22 0.03 262 / .38);
+    opacity:0; pointer-events:none; transition:opacity .25s}
+  .scrim.show{opacity:1; pointer-events:auto}
+  .sheet{position:absolute; left:0; right:0; bottom:0; z-index:55; background:var(--bg);
+    border-radius:22px 22px 0 0; padding:18px 20px 26px;
+    box-shadow:0 -18px 50px oklch(0.3 0.04 262 / .22);
+    transform:translateY(105%); transition:transform .3s cubic-bezier(.16,1,.3,1)}
+  .sheet.show{transform:translateY(0)}
+  .sheet .grab{width:36px; height:4px; border-radius:2px; background:var(--rule); margin:0 auto 14px}
+  .sh-head{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+  .sh-head .ic{width:34px; height:34px; border-radius:10px; background:var(--red-dim); color:var(--red-deep);
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto}
+  .sh-head .ic svg{width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round}
+  .sh-head h1{font-family:var(--display); font-size:19px; font-weight:600; flex:1 1 auto}
+  .sh-head .cd{font-family:var(--display); font-size:19px; font-weight:600; color:var(--red-deep);
+    font-variant-numeric:tabular-nums; flex:0 0 auto}
+  .sh-body{font-size:13px; line-height:1.55; color:var(--muted); margin-bottom:16px}
+  .sh-body b{color:var(--red-deep); font-weight:600}
+  .sh-cta{width:100%; height:46px; border-radius:999px; border:none; background:var(--red);
+    color:var(--onaccent); font-family:var(--sans); font-size:14.5px; font-weight:700; cursor:pointer;
+    transition:background .15s}
+  .sh-cta:hover{background:var(--red-deep)}
+
+  /* ── quiet block button: present, never the first read ── */
+  .blockbtn{flex:0 0 auto; margin-left:auto; font-family:var(--sans); font-size:10px; font-weight:600; color:var(--muted);
+    background:var(--raised-2); border:1px solid var(--rule); border-radius:6px; padding:5px 10px; cursor:pointer;
+    letter-spacing:.02em; transition:background .15s, color .15s}
+  .blockbtn:hover{background:oklch(0.91 0.008 250); color:var(--text)}
+
+  /* ── block confirm dialog ── */
+  .blk-scrim{position:absolute; inset:0; z-index:62; background:oklch(0.22 0.03 262 / .45);
+    opacity:0; pointer-events:none; transition:opacity .2s; display:flex; align-items:center; justify-content:center}
+  .blk-scrim.show{opacity:1; pointer-events:auto}
+  .blk-dialog{background:var(--bg); border-radius:16px; width:280px; padding:22px 20px 16px;
+    box-shadow:0 16px 48px oklch(0.3 0.04 262 / .25); transform:scale(.85); opacity:0;
+    transition:transform .25s cubic-bezier(.16,1,.3,1), opacity .2s}
+  .blk-scrim.show .blk-dialog{transform:scale(1); opacity:1}
+  .blk-dialog h2{font-family:var(--display); font-size:16px; font-weight:600; margin-bottom:8px; text-align:center}
+  .blk-dialog p{font-size:12.5px; line-height:1.5; color:var(--muted); text-align:center; margin-bottom:18px}
+  .blk-dialog p b{color:var(--red); font-weight:600}
+  .blk-actions{display:flex; gap:10px}
+  .blk-actions button{flex:1; height:40px; border-radius:999px; border:none; font-family:var(--sans);
+    font-size:13.5px; font-weight:600; cursor:pointer; transition:background .15s}
+  .blk-cancel{background:var(--raised-2); color:var(--text)}
+  .blk-cancel:hover{background:oklch(0.9 0.008 250)}
+  .blk-confirm{background:var(--red); color:var(--onaccent)}
+  .blk-confirm:hover{background:var(--red-deep)}
+
+  /* ── tab bar ── */
+  .tabs{flex:0 0 auto; display:flex; border-top:1px solid var(--rule); background:var(--bg); padding:6px 6px 14px}
+  .tab{flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 0; cursor:pointer;
+    color:var(--faint); background:none; border:none; font-family:var(--sans)}
+  .tab svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+  .tab .tl{font-size:9.5px; font-weight:500}
+  .tab.on{color:var(--blue)}
+
+  /* ── iOS keyboard (DONI Figma 1617:12161) — slides up from the bottom, pushing the input above it ── */
+  .ioskb{position:absolute; left:0; right:0; bottom:0; z-index:42; background:#d2d5db;
+    transform:translateY(102%); transition:transform .38s cubic-bezier(.2,.9,.25,1);
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', var(--sans); user-select:none}
+  .ioskb.open{transform:translateY(0)}
+  .kbsug{display:flex; align-items:center; height:43px; padding:5px 4px 4px}
+  .kbsug .s{flex:1; height:100%; display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:600; color:#111; border-radius:4.6px; position:relative; white-space:nowrap}
+  .kbsug .s.sel{background:#eceef1}
+  .kbsug .s + .s::before{content:''; position:absolute; left:0; top:8px; bottom:8px; width:1px; background:rgba(0,0,0,.1)}
+  .kbsug .s.sel + .s::before{display:none}
+  .kbrows{padding:3px 3px 0}
+  .kr{display:flex; gap:5px; margin-bottom:11px}
+  .kr2{padding:0 19px}
+  .kk{flex:1; min-width:0; height:40px; border:none; border-radius:5px; background:#fff; color:#111;
+    font-family:inherit; font-size:21px; font-weight:400; cursor:pointer; padding:0;
+    box-shadow:0 1px 0 rgba(0,0,0,.3); display:flex; align-items:center; justify-content:center}
+  .kk:active{background:#eceef1}
+  .kk.fn{flex:0 0 42px; background:#b3bac5}
+  .kk.fn svg{width:21px; height:21px; stroke:#111; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round}
+  .kr3 .mid{display:flex; flex:1; gap:5px; padding:0 9px}
+  .kk.abc,.kk.ret{flex:0 0 88px; background:#b3bac5; font-size:15px; font-weight:500}
+  .kk.space{font-size:15px; font-weight:500}
+  .kbfoot{display:flex; align-items:center; justify-content:space-between; height:42px; padding:2px 22px 0}
+  .kbfoot svg{width:23px; height:23px; stroke:#50555c; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+  .kbhome{display:flex; justify-content:center; padding:2px 0 8px}
+  .kbhome i{width:120px; height:4.5px; border-radius:99px; background:#111}
+  #paneA{transition:padding-bottom .38s cubic-bezier(.2,.9,.25,1)}
+
+  /* ── side note (desktop only) ── */
+  .note{width:250px; color:var(--muted); font-size:12.5px; line-height:1.65}
+  .note h2{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--faint); font-weight:500; margin-bottom:10px}
+  .note p{margin-bottom:10px}
+  .note em{color:var(--blue); font-style:normal; font-weight:600}
+  .note .k{color:var(--text); font-weight:600}
+  /* ── earnings popup: the money-lands moment ── */
+  .earnpop{position:absolute; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
+    pointer-events:none; opacity:0}
+  .earnpop.show{opacity:1}
+  .earnpop.hide{opacity:0; transition:opacity .35s}
   .ep-card{position:relative; background:var(--bg); border-radius:20px; padding:22px 34px 18px;
     box-shadow:0 0 0 1px var(--rule), 0 24px 60px oklch(0.3 0.04 262 / .28);
-    display:flex; flex-direction:column; align-items:center; gap:6px; transform:scale(.6); opacity:0}
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    transform:scale(.6); opacity:0}
   .earnpop.show .ep-card{animation:eppop .55s cubic-bezier(.34,1.56,.64,1) forwards}
-  @keyframes eppop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1);opacity:1}}
+  @keyframes eppop{0%{transform:scale(.6); opacity:0}60%{transform:scale(1.06); opacity:1}100%{transform:scale(1); opacity:1}}
+  /* shiny gold — matches the prototype's bright coin */
   .ep-coin{width:44px; height:44px; border-radius:50%; color:var(--onaccent); position:relative; overflow:hidden;
-    background:linear-gradient(150deg, oklch(0.92 0.15 96), oklch(0.85 0.17 90) 45%, oklch(0.74 0.16 82));
+    background:linear-gradient(150deg, oklch(0.92 0.15 96) 0%, oklch(0.85 0.17 90) 45%, oklch(0.74 0.16 82) 100%);
     display:flex; align-items:center; justify-content:center;
-    box-shadow:inset 0 2px 3px oklch(0.97 0.09 100 / .9), inset 0 -3px 0 oklch(0.66 0.15 78), 0 4px 14px oklch(0.85 0.17 90 / .55)}
+    box-shadow:inset 0 2px 3px oklch(0.97 0.09 100 / .9), inset 0 -3px 0 oklch(0.66 0.15 78),
+      0 4px 14px oklch(0.85 0.17 90 / .55)}
   .earnpop.show .ep-coin{animation:epflip .8s cubic-bezier(.2,.8,.3,1) .1s backwards}
   @keyframes epflip{0%{transform:rotateY(0) translateY(-14px)}100%{transform:rotateY(720deg) translateY(0)}}
+  /* glint sweep across the coin face */
   .ep-coin::after{content:''; position:absolute; top:-10%; left:-60%; width:45%; height:120%;
     background:linear-gradient(105deg, transparent, oklch(1 0 0 / .75), transparent); transform:skewX(-20deg)}
   .earnpop.show .ep-coin::after{animation:epglint 1s ease .55s backwards}
@@ -206,78 +445,126 @@
   .ep-coin svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:2.2; stroke-linecap:round}
   .ep-amt{font-family:var(--display); font-size:30px; font-weight:600; color:var(--blue); line-height:1}
   .earnpop.show .ep-amt{animation:eprise .5s cubic-bezier(.16,1,.3,1) .25s backwards}
-  @keyframes eprise{0%{opacity:0; transform:translateY(10px)}100%{opacity:1; transform:none}}
+  @keyframes eprise{0%{opacity:0; transform:translateY(10px)}100%{opacity:1; transform:translateY(0)}}
   .ep-lbl{font-size:12.5px; font-weight:600; color:var(--muted)}
+  /* particle burst — a handful of blue + amber flecks */
   .ep-card i{position:absolute; top:30px; left:50%; width:5px; height:5px; border-radius:50%; opacity:0}
-  .ep-card i:nth-child(odd){background:var(--blue)} .ep-card i:nth-child(even){background:oklch(0.85 0.17 90)}
+  .ep-card i:nth-child(odd){background:var(--blue)}
+  .ep-card i:nth-child(even){background:oklch(0.85 0.17 90)}
   .earnpop.show .ep-card i{animation:epburst .9s cubic-bezier(.16,1,.3,1) .3s forwards}
-  @keyframes epburst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.4)}}
+  @keyframes epburst{0%{opacity:1; transform:translate(0,0) scale(1)}100%{opacity:0; transform:translate(var(--dx),var(--dy)) scale(.4)}}
 
-  /* ── completion + switch ── */
-  .modal{position:absolute; inset:0; z-index:70; background:oklch(0.2 0.03 262 / .55); display:flex; align-items:center; justify-content:center; padding:26px; opacity:0; pointer-events:none; transition:opacity .3s}
-  .modal.show{opacity:1; pointer-events:auto}
-  .mcard{background:var(--bg); border-radius:24px; padding:26px 22px; text-align:center; width:100%;
-    box-shadow:0 24px 60px oklch(0.2 0.03 262 / .4); transform:scale(.9); transition:transform .34s cubic-bezier(.34,1.56,.64,1)}
-  .modal.show .mcard{transform:scale(1)}
-  .mcard .big{font-size:50px; margin-bottom:4px; animation:tada 1s}
-  @keyframes tada{0%{transform:scale(.6) rotate(-8deg)}60%{transform:scale(1.15) rotate(6deg)}100%{transform:scale(1)}}
-  .mcard h2{font-family:var(--display); font-weight:600; font-size:21px; margin:6px 0 4px}
-  .mcard p{font-size:12.5px; color:var(--muted); line-height:1.5; margin-bottom:14px}
-  .mcard .tot{background:var(--blue-dim); border:1px solid oklch(0.46 0.19 262 / .2); border-radius:16px; padding:12px; margin-bottom:16px}
-  .mcard .tot .l{font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--blue)}
-  .mcard .tot .v{font-family:var(--display); font-size:30px; font-weight:600; color:var(--blue)}
-  .mcard .cta{width:100%; height:46px; border:none; border-radius:999px; background:var(--blue); color:var(--onaccent); font-size:14.5px; font-weight:600; cursor:pointer}
-  .mcard .cta:hover{background:var(--blue-deep)}
-
-  .toast{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:66; background:oklch(0.22 0.03 262 / .96);
-    color:#fff; border-radius:18px; padding:18px 22px; text-align:center; box-shadow:0 18px 44px oklch(0.2 0.03 262 / .5); width:72%; opacity:0; transition:opacity .3s}
-  .toast.show{opacity:1}
-  .toast .sp{width:32px; height:32px; border:3px solid oklch(1 0 0 / .25); border-top-color:#fff; border-radius:50%; margin:0 auto 12px; animation:spin .8s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .toast .tt{font-family:var(--display); font-size:14px; font-weight:600}
-  .toast .ts{font-size:11px; opacity:.7; margin-top:4px}
-
-  .replay{position:absolute; top:30px; right:14px; z-index:80; background:oklch(0.2 0.03 262 / .55); color:#fff;
-    font-family:var(--mono); font-size:9px; letter-spacing:.08em; padding:5px 10px; border:none; border-radius:999px; cursor:pointer; backdrop-filter:blur(6px)}
-
-  /* ── side note ── */
-  .note{width:260px; color:var(--muted); font-size:12.5px; line-height:1.65}
-  .note h2{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--text); margin-bottom:12px}
-  .note ol{margin:0; padding-left:16px}
-  .note li{margin-bottom:9px}
-  .note b{color:var(--text); font-weight:600}
-  .note .step{font-family:var(--mono); font-size:10px; color:var(--violet); font-weight:700}
   @media (max-width:760px){.note{display:none} body{padding:0} .phone{height:100vh; border-radius:0; border:none}}
-  @media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}
+
+  @media (prefers-reduced-motion:reduce){
+    .hand{animation:none}
+    .pane{transition:none}
+    .earnpop.show .ep-card,.earnpop.show .ep-coin,.earnpop.show .ep-amt{animation:none; transform:none; opacity:1}
+    .earnpop.show .ep-card i{animation:none; opacity:0}
+    .nxrow.show .nextbtn{animation:none}
+    .q.cur::after{animation:none}
+    .vccard{animation:none}
+    .pk-own.pop{animation:none}
+    *{transition:none !important}
+  }
+
+
+/* ── onboarding additions (all copy EN) ── */
+.ob-tip{display:flex;gap:10px;align-items:flex-start;background:var(--blue-dim);
+  border:1px solid oklch(0.46 0.19 262 / .18);border-radius:14px;padding:11px 13px;margin-bottom:9px;
+  animation:msgin .3s cubic-bezier(.16,1,.3,1)}
+.ob-tip .ti{font-size:18px;flex:0 0 auto;line-height:1.2}
+.ob-tip .tx{font-size:13px;line-height:1.45;color:var(--text)}
+.ob-next{width:100%;height:46px;border:none;border-radius:999px;background:var(--blue);color:var(--onaccent);
+  font-family:var(--sans);font-size:14.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;gap:8px;box-shadow:0 8px 22px oklch(0.46 0.19 262 / .28);transition:background .15s}
+.ob-next:hover{background:var(--blue-deep)}
+.pk-ct{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+  text-align:center;margin-bottom:9px}
+@keyframes msgin{0%{opacity:0;transform:translateY(9px)}100%{opacity:1;transform:none}}
+/* photo bubble */
+.bub.pb{padding:5px}
+.pb .ph{width:150px;height:196px;border-radius:13px;display:flex;align-items:flex-end;padding:9px;
+  font-size:11px;font-weight:600;color:#fff;background:linear-gradient(155deg,#fda4af,#c084fc,#818cf8)}
+/* coach mask + spotlight */
+.ob-block{position:absolute;inset:0;z-index:44;background:transparent}
+.ob-spot{position:relative;z-index:46 !important;
+  box-shadow:0 0 0 9999px oklch(0.20 0.03 262 / .55),0 0 0 3px var(--blue),0 0 24px oklch(0.46 0.19 262 / .5) !important;
+  border-radius:14px;animation:obpulse 1.7s ease-in-out infinite}
+@keyframes obpulse{0%,100%{box-shadow:0 0 0 9999px oklch(0.20 0.03 262 / .55),0 0 0 3px var(--blue),0 0 18px oklch(0.46 0.19 262 / .4)}
+  50%{box-shadow:0 0 0 9999px oklch(0.20 0.03 262 / .55),0 0 0 4px oklch(0.52 0.2 262 / 1),0 0 32px oklch(0.46 0.19 262 / .6)}}
+.ob-coach{position:absolute;z-index:48;left:18px;right:18px;background:var(--bg);border-radius:17px;padding:14px 16px;
+  box-shadow:0 18px 44px oklch(0.2 0.03 262 / .4);animation:obcpop .34s cubic-bezier(.16,1,.3,1)}
+@keyframes obcpop{0%{opacity:0;transform:translateY(10px) scale(.97)}100%{opacity:1;transform:none}}
+.ob-coach .ch{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--blue);margin-bottom:7px}
+.ob-coach .ch .st{margin-left:auto;color:var(--faint)}
+.ob-coach .cx{font-family:var(--display);font-size:16px;font-weight:600;line-height:1.35;color:var(--text)}
+.ob-coach .cs{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.45}
+/* the pointing finger sits above the veil */
+.hand.ob{z-index:47;display:flex}
+/* completion modal */
+.ob-modal{position:absolute;inset:0;z-index:70;background:oklch(0.2 0.03 262 / .55);display:flex;align-items:center;
+  justify-content:center;padding:26px;opacity:0;pointer-events:none;transition:opacity .3s}
+.ob-modal.show{opacity:1;pointer-events:auto}
+.ob-card{background:var(--bg);border-radius:24px;padding:26px 22px;text-align:center;width:100%;
+  box-shadow:0 24px 60px oklch(0.2 0.03 262 / .4);transform:scale(.92);transition:transform .34s cubic-bezier(.16,1,.3,1)}
+.ob-modal.show .ob-card{transform:scale(1)}
+.ob-card .big{font-size:48px;margin-bottom:4px}
+.ob-card h2{font-family:var(--display);font-weight:600;font-size:21px;margin:6px 0 4px;color:var(--text)}
+.ob-card p{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:14px}
+.ob-card .tot{background:var(--blue-dim);border:1px solid oklch(0.46 0.19 262 / .2);border-radius:16px;padding:12px;margin-bottom:16px}
+.ob-card .tot .l{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--blue)}
+.ob-card .tot .v{font-family:var(--display);font-size:30px;font-weight:600;color:var(--blue)}
+.ob-card .cta{width:100%;height:46px;border:none;border-radius:999px;background:var(--blue);color:var(--onaccent);
+  font-size:14.5px;font-weight:600;cursor:pointer;transition:background .15s}
+.ob-card .cta:hover{background:var(--blue-deep)}
+/* switch toast */
+.ob-toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:66;
+  background:oklch(0.22 0.03 262 / .96);color:#fff;border-radius:18px;padding:18px 22px;text-align:center;
+  box-shadow:0 18px 44px oklch(0.2 0.03 262 / .5);width:72%;opacity:0;transition:opacity .3s;pointer-events:none}
+.ob-toast.show{opacity:1}
+.ob-toast .sp{width:32px;height:32px;border:3px solid oklch(1 0 0 / .25);border-top-color:#fff;border-radius:50%;
+  margin:0 auto 12px;animation:obspin .8s linear infinite}
+@keyframes obspin{to{transform:rotate(360deg)}}
+.ob-toast .tt{font-family:var(--display);font-size:14px;font-weight:600}
+.ob-toast .ts{font-size:11px;opacity:.7;margin-top:4px}
+.ob-replay{position:absolute;top:30px;right:14px;z-index:80;background:oklch(0.2 0.03 262 / .5);color:#fff;
+  font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:5px 10px;border:none;border-radius:999px;cursor:pointer}
+.send{width:40px;height:40px;border-radius:50%;border:none;background:var(--blue);color:#fff;cursor:pointer;
+  align-items:center;justify-content:center;flex:0 0 auto;display:none}
+.send svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pk-own.text .voice{display:none}.pk-own.text input{display:block}.pk-own.text .send{display:flex}
+.pk-own input{display:none;flex:1 1 auto;height:44px;border-radius:999px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13.5px;padding:0 16px;min-width:0}
+.pk-own input::placeholder{color:var(--muted)}
+
+.typing-b{background:var(--raised-2)!important;padding:12px 15px!important}
+.td{display:flex;gap:4px}
+.td i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:tpd 1.2s infinite}
+.td i:nth-child(2){animation-delay:.15s}.td i:nth-child(3){animation-delay:.3s}
+@keyframes tpd{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
 </style>
 </head>
 <body>
 <div class="phone" id="phone">
   <div class="notch"></div>
 
-  <!-- top: queue rail + balance -->
   <div class="top">
     <div class="rail" id="rail"></div>
-    <div class="bal">
-      <div class="amt num"><sup>$</sup><span class="amtwrap"><span id="balAmt">100.12</span></span></div>
-      <div class="lbl">今日收益</div>
-    </div>
+    <div class="bal"><div class="amt num"><sup>&cent;</sup><span class="amtwrap"><span id="balAmt">100.12</span></span></div></div>
   </div>
 
-  <!-- client header -->
-  <div class="client">
-    <span class="n" id="cliN">Jason</span>
-    <span class="v" id="cliV">在线 · <b>正在和你聊天</b></span>
-    <span class="ntag" id="cliTag">新手引导</span>
+  <div class="client" id="client">
+    <span class="n" id="cliN">Alex, 66</span>
+    <span class="v num" id="cliV"><b>&cent;42.50</b> spent &middot; 34 &hearts;</span>
+    <button class="blockbtn" id="blockBtn">Block</button>
   </div>
 
-  <!-- chat -->
-  <div class="chat" id="chat"><div class="day">今天</div></div>
+  <div class="chat" id="chat"><div class="day">Today &middot; 9:41 PM</div></div>
 
-  <!-- dynamic zone -->
   <div id="zone"></div>
 
-  <!-- earnings coin popup -->
   <div class="earnpop" id="earnpop" aria-live="polite">
     <div class="ep-card">
       <i style="--dx:-58px;--dy:-46px"></i><i style="--dx:52px;--dy:-54px"></i>
@@ -285,89 +572,101 @@
       <i style="--dx:-34px;--dy:-66px"></i><i style="--dx:30px;--dy:-70px"></i>
       <i style="--dx:-52px;--dy:38px"></i><i style="--dx:56px;--dy:34px"></i>
       <span class="ep-coin"><svg viewBox="0 0 24 24"><path d="M14.5 8.2c-.5-.8-1.4-1.2-2.5-1.2-1.6 0-2.8.9-2.8 2s1 1.7 2.8 2c1.8.3 2.8 1 2.8 2s-1.2 2-2.8 2c-1.1 0-2-.4-2.5-1.2M12 5.5V7m0 10v1.5"/></svg></span>
-      <div class="ep-amt num" id="epAmt">+$0.30</div>
-      <div class="ep-lbl" id="epLbl">收益到账</div>
+      <div class="ep-amt num" id="epAmt">+&cent;0.10</div>
+      <div class="ep-lbl" id="epLbl">You earned</div>
     </div>
   </div>
 
-  <!-- completion modal -->
-  <div class="modal" id="modal"><div class="mcard">
-    <div class="big">🎉</div>
-    <h2>新手任务完成</h2>
-    <p>你已解锁全部赚钱方式：<br>AI 代回 · 二选一 · 手动回复 · 语音 · 自拍</p>
-    <div class="tot"><div class="l">本次引导累计收益</div><div class="v num" id="modalTot">$4.80</div></div>
-    <button class="cta" id="modalCta">开始接待真实用户 →</button>
+  <div class="hand" id="hand" aria-hidden="true" style="display:none">&#128070;<span class="aib">TAP</span></div>
+
+  <div class="ob-modal" id="modal"><div class="ob-card">
+    <div class="big">&#127881;</div>
+    <h2>Onboarding complete</h2>
+    <p>You&rsquo;ve unlocked every way to earn:<br>AI reply &middot; Quick pick &middot; Manual reply &middot; Voice &middot; Selfie</p>
+    <div class="tot"><div class="l">Earned in this tutorial</div><div class="v num" id="modalTot">&cent;4.60</div></div>
+    <button class="cta" id="modalCta">Start chatting with real users &rarr;</button>
   </div></div>
 
-  <!-- switch toast -->
-  <div class="toast" id="toast"><div class="sp"></div><div class="tt" id="toastT">正在为你切换聊天…</div><div class="ts" id="toastS">已找到 1 位在线真人用户</div></div>
+  <div class="ob-toast" id="toast"><div class="sp"></div><div class="tt" id="toastT">Switching you to the next chat&hellip;</div><div class="ts" id="toastS">1 online real user found</div></div>
 
-  <button class="replay" id="replay">↺ RESTART</button>
+  <button class="ob-replay" id="replay">&#8635; RESTART</button>
 </div>
 
 <aside class="note">
-  <h2>SITIN 4.0 · 新手引导教学</h2>
-  <ol>
-    <li><span class="step">a.</span> 进入私聊，<b>AI 自动代回</b> → 金币收益弹出、余额上滚 → tips「AI 会帮助你回复赚钱」+ <b>Next</b>。</li>
-    <li><span class="step">b.</span> 点 Next，男 DH 回复 → 出现<b>二选一</b>，蒙层聚光引导：<em>选择你觉得合适的回复内容发给对方</em>。</li>
-    <li><span class="step">c.</span> 选完 → 收益 2s → 蒙层引导<b>手动回复</b>：<em>友好的回复对消息获得更多收益</em>。</li>
-    <li><span class="step">d.</span> 手动发完 → 收益 2s → 蒙层引导<b>发语音</b>：<em>给对方发送一条语音消息获得更多收益</em>。</li>
-    <li><span class="step">e.</span> 语音发完 → 收益 2s → 男 DH「send me a pic?」→ 蒙层引导<b>发自拍</b>。</li>
-    <li><span class="step">f.</span> 自拍发完 → 收益 2s → 发消息栏消失 → <b>完成提示</b>。</li>
-    <li><span class="step">g.</span> 完成后按<b>自动切换逻辑</b>跳转下一位真人男用户（无真人则不跳转；未完成引导也不切换）。</li>
-  </ol>
+  <h2>SITIN 4.0 &middot; Onboarding tutorial</h2>
+  <p><span class="k">a.</span> She opens the chat &rarr; <b>AI auto-replies</b>, the gold coin pops and the balance rolls up &rarr; tip <em>&ldquo;AI replies for you and earns money&rdquo;</em> + <b>Next</b>.</p>
+  <p><span class="k">b.</span> Tap Next, he replies &rarr; <b>two options</b> appear under a spotlight mask &mdash; <em>Pick the reply that fits best and send it</em>. A finger points the way.</p>
+  <p><span class="k">c.</span> After the pick &rarr; coin (2s) &rarr; mask guides a <b>manual reply</b>: <em>A friendly reply earns you more</em>.</p>
+  <p><span class="k">d.</span> After typing &rarr; coin (2s) &rarr; mask guides a <b>voice note</b>: <em>Send a voice message to earn more</em>.</p>
+  <p><span class="k">e.</span> After the voice &rarr; coin (2s) &rarr; he asks <em>&ldquo;send me a pic?&rdquo;</em> &rarr; mask guides a <b>selfie</b>.</p>
+  <p><span class="k">f.</span> After the photo &rarr; coin (2s) &rarr; the input bar disappears &rarr; <b>task-complete</b> card.</p>
+  <p><span class="k">g.</span> Then the <b>auto-switch</b> logic jumps to a real user (Don). No real message waiting &rarr; no jump. Never switches before onboarding is done.</p>
 </aside>
 
 <script>
+
 const $=id=>document.getElementById(id);
-const chat=$('chat'), zone=$('zone'), phone=$('phone');
+const chat=$('chat'), zone=$('zone'), phone=$('phone'), hand=$('hand');
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 let bal=100.12, gained=0;
-
-/* ── people ── */
-const HERO={nm:'Jason',init:'J',grad:'linear-gradient(135deg,#f97316,#ef4444)'};
-// 真人男用户队列（完成新手任务后自动切换的目标；为空则不切换）
-const REAL_QUEUE=[{nm:'Don',init:'D',grad:'linear-gradient(135deg,#0ea5e9,#6366f1)',msg:"hey beautiful, saw your profile 😌 free to chat for a bit?"}];
+const AV_ALEX="data:image/jpeg;base64,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", AV_DON="data:image/jpeg;base64,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";
+const HERO={nm:'Alex, 66', av:AV_ALEX, stat:'<b>&cent;42.50</b> spent &middot; 34 &hearts;'};
+// real male users to auto-switch to once onboarding is done (empty => no switch)
+const REAL_QUEUE=[{nm:'Don, 58', av:AV_DON, stat:'<b>&cent;18.00</b> spent &middot; 12 &hearts;',
+  msg:"hey beautiful, saw your profile 😌 free to chat for a bit?"}];
+let clock=[' 9:41',' 9:42',' 9:43',' 9:44',' 9:45',' 9:46',' 9:47',' 9:48'], ci=1;
+const t=()=>clock[Math.min(ci++,clock.length-1)].trim();
 
 /* ── rail ── */
-function ring(cls,pct){const r=44/2,c=2*Math.PI*15;return `<svg viewBox="0 0 34 34"><circle class="track" cx="17" cy="17" r="15"/><circle class="arc" cx="17" cy="17" r="15" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct)}" stroke-linecap="round"/></svg>`;}
-function renderRail(activeReal){
+const C=2*Math.PI*14.5;
+function arc(pct,color){return `<circle class="arc" cx="16" cy="16" r="14.5" style="stroke:${color}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-pct)).toFixed(1)}" stroke-linecap="round"/>`;}
+function renderRail(active){
   const rail=$('rail');
-  if(!activeReal){
-    rail.innerHTML=`
-      <button class="q v cur" title="Jason · 新手引导"><span class="tagnew">新手</span>${ring('v',0.15)}<span class="fa" style="background:${HERO.grad}">${HERO.init}</span></button>
-      <button class="q b" title="Don · 真人 · 等待中">${ring('b',0.4)}<span class="fa" style="background:${REAL_QUEUE[0].grad}">${REAL_QUEUE[0].init}</span><span class="bdg">1</span></button>`;
-  }else{
+  if(active==='real'){
     const u=REAL_QUEUE[0];
-    rail.innerHTML=`
-      <button class="q b cur" title="${u.nm} · 真人">${ring('b',0.4)}<span class="fa" style="background:${u.grad}">${u.init}</span></button>
-      <button class="q v" title="Jason · 已完成"><span class="tagnew" style="color:var(--faint)">已完成</span>${ring('v',1)}<span class="fa" style="background:${HERO.grad}">${HERO.init}</span></button>`;
+    rail.innerHTML=
+      `<button class="q b sel cur" aria-label="${u.nm}"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/>${arc(.4,'var(--blue)')}</svg><img src="${u.av}"></button>`+
+      `<button class="q" aria-label="Alex done"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/>${arc(1,'oklch(0.7 0.02 260)')}</svg><img src="${AV_ALEX}"></button>`;
+  }else{
+    rail.innerHTML=
+      `<button class="q b sel cur" id="alexQ" aria-label="Alex"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/>${arc(.28,'var(--blue)')}</svg><img src="${AV_ALEX}"></button>`+
+      `<button class="q b" id="donQ" aria-label="Don waiting"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/>${arc(.4,'var(--blue)')}</svg><img src="${AV_DON}"><span class="bdg">1</span></button>`;
   }
 }
 
-/* ── chat rendering ── */
-function scrollDown(){requestAnimationFrame(()=>{chat.scrollTop=chat.scrollHeight+400});}
-function msgIn(text){const m=document.createElement('div');m.className='msg in';m.innerHTML=`<div class="bub">${text}</div>`;chat.appendChild(m);scrollDown();return m;}
-function msgOut(html,{ai=false,meta=''}={}){const m=document.createElement('div');m.className='msg out'+(ai?' ai':'');
-  m.innerHTML=`<div class="bub">${html}</div>`+(meta?`<div class="meta">${meta}</div>`:'');chat.appendChild(m);scrollDown();return m;}
-function aihint(t){const d=document.createElement('div');d.className='aihint';d.textContent=t;chat.appendChild(d);scrollDown();}
+/* ── chat render ── */
+function scrollDown(){requestAnimationFrame(()=>{chat.scrollTop=chat.scrollHeight+500});}
+function msgIn(text){const m=document.createElement('div');m.className='msg in';
+  m.innerHTML=`<div class="bub">${text}</div><div class="meta"><span class="num">${t()}</span></div>`;
+  chat.appendChild(m);scrollDown();return m;}
+function msgOut(html,{ai=false,you=false,earn=null,cls=''}={}){
+  const m=document.createElement('div');m.className='msg out';
+  let meta='';
+  if(ai) meta+='<span class="ai">AI</span>';
+  if(you) meta+='<span style="color:var(--blue);font-weight:600">You</span>';
+  if(earn!=null) meta+=`<span class="earn num">+&cent;${earn.toFixed(2)}</span>`;
+  meta+=`<span class="num">${t()}</span>`;
+  m.innerHTML=`<div class="bub ${cls}">${html}</div><div class="meta">${meta}</div>`;
+  chat.appendChild(m);scrollDown();return m;}
 let typingEl=null;
-function typing(){const d=document.createElement('div');d.className='typing';d.innerHTML='<i></i><i></i><i></i>';chat.appendChild(d);scrollDown();typingEl=d;}
+function typing(){const d=document.createElement('div');d.className='msg in';d.innerHTML='<div class="bub typing-b"><span class="td"><i></i><i></i><i></i></span></div>';
+  chat.appendChild(d);scrollDown();typingEl=d;}
 function stopTyping(){if(typingEl){typingEl.remove();typingEl=null;}}
-const VBUB=`<div class="bub vb"><span class="pl"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span><span class="w">`+
-  [8,14,22,10,26,16,9,20,24,12,15,18].map(h=>`<i style="height:${h}px"></i>`).join('')+`</span><span class="dur">0:07</span></div>`;
+function aihint(txt){const d=document.createElement('div');d.className='day';d.style.color='var(--blue)';d.textContent=txt;chat.appendChild(d);scrollDown();}
+const VBARS=[8,14,22,10,26,16,9,20,24,12,15,18,9,17,22,11].map(h=>`<i style="height:${h}px"></i>`).join('');
+const VBUB=`<div class="bub vb"><span class="pl"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l14 9-14 9z"/></svg></span><span class="w">${VBARS}</span><span class="dur num">0:07</span></div>`;
 
 /* ── balance + coin ── */
 function rollBal(txt){const el=$('balAmt'),wrap=el.parentNode,ghost=el.cloneNode(true);
   ghost.removeAttribute('id');ghost.className='roll-out num';wrap.appendChild(ghost);
   el.textContent=txt;el.classList.remove('roll-in');void el.offsetWidth;el.classList.add('roll-in');
   setTimeout(()=>ghost.remove(),550);}
-// 展示收益（金币弹出 + 余额上滚），完整展示 2s 后 resolve
+// show earnings (coin + balance roll), fully displayed for 2s
 function earn(amount,label){
   return new Promise(res=>{
     bal+=amount; gained+=amount;
-    $('epAmt').textContent='+$'+amount.toFixed(2);
-    $('epLbl').textContent=label||'收益到账';
+    $('epAmt').innerHTML='+&cent;'+amount.toFixed(2);
+    $('epLbl').textContent=label||'You earned';
     const pop=$('earnpop');pop.classList.remove('hide');pop.classList.add('show');
     setTimeout(()=>rollBal(bal.toFixed(2)),600);
     setTimeout(()=>pop.classList.add('hide'),1650);
@@ -375,186 +674,179 @@ function earn(amount,label){
   });
 }
 
-/* ── coach overlay ── */
-let curSpot=null,curBlock=null,curCoach=null,curFinger=null;
+/* ── coach mask + pointing finger ── */
+let spot=null,block=null,coachEl=null;
 function coach(target,{text,sub}={}){
   clearCoach();
-  const block=document.createElement('div');block.className='block';phone.appendChild(block);curBlock=block;
-  target.classList.add('spot');curSpot=target;
-  const c=document.createElement('div');c.className='coach';
-  c.innerHTML=`<div class="ch">✦ 新手引导<span class="st">按提示操作 →</span></div><div class="cx">${text}</div>${sub?`<div class="cs">${sub}</div>`:''}`;
-  phone.appendChild(c);curCoach=c;
-  const f=document.createElement('div');f.className='finger';f.textContent='👆';phone.appendChild(f);curFinger=f;
+  block=document.createElement('div');block.className='ob-block';phone.appendChild(block);
+  target.classList.add('ob-spot');spot=target;
+  coachEl=document.createElement('div');coachEl.className='ob-coach';
+  coachEl.innerHTML=`<div class="ch">&#10022; ONBOARDING<span class="st">follow the guide &rarr;</span></div><div class="cx">${text}</div>${sub?`<div class="cs">${sub}</div>`:''}`;
+  phone.appendChild(coachEl);
+  placeHand(target);
   requestAnimationFrame(()=>{
     const pr=phone.getBoundingClientRect(),tr=target.getBoundingClientRect();
-    const below=(tr.top-pr.top)<pr.height*0.5;
-    c.style.top=below?(tr.bottom-pr.top+20)+'px':Math.max(70,tr.top-pr.top-c.offsetHeight-20)+'px';
-    f.style.left=(tr.left-pr.left+tr.width*0.5-13)+'px';
-    f.style.top=(tr.top-pr.top-34)+'px';
+    const below=(tr.top-pr.top)<pr.height*0.48;
+    coachEl.style.top=below?(tr.bottom-pr.top+22)+'px':Math.max(66,tr.top-pr.top-coachEl.offsetHeight-22)+'px';
   });
 }
-function clearCoach(){if(curSpot){curSpot.classList.remove('spot');curSpot=null;}
-  [curBlock,curCoach,curFinger].forEach(e=>e&&e.remove());curBlock=curCoach=curFinger=null;}
-
-/* ── input plane ── */
-function buildPlane(ph,{text=false}={}){
-  const p=document.createElement('div');p.className='pk-own pop'+(text?' text':'');p.id='plane';
-  p.innerHTML=`
-    <button class="icob" id="kbBtn" title="键盘"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></button>
-    <button class="voice" id="voiceBtn"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></svg>按住说话</button>
-    <input id="freetext" placeholder="发一条消息…" autocomplete="off">
-    <button class="icob" id="camBtn" title="相机"><svg viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L19 6h0a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.2"/></svg></button>
-    <button class="send" id="sendBtn"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-6-8-2z"/></svg></button>`;
-  return p;
+function placeHand(target){
+  hand.classList.add('ob','guide');hand.style.display='flex';
+  const pr=phone.getBoundingClientRect(),tr=target.getBoundingClientRect();
+  hand.style.left=(tr.left-pr.left+tr.width*0.5-11)+'px';
+  hand.style.top=(tr.top-pr.top+tr.height*0.52)+'px';
 }
-function setZone(html){zone.innerHTML='';if(typeof html==='string')zone.innerHTML=html;else if(html)zone.appendChild(html);}
+function clearCoach(){if(spot){spot.classList.remove('ob-spot');spot=null;}
+  [block,coachEl].forEach(e=>e&&e.remove());block=coachEl=null;
+  hand.classList.remove('ob','guide');hand.style.display='none';}
+
+/* ── input plane (exact SITIN markup) ── */
+function planeHTML(text){
+  return `<div class="pk-own${text?' text':''}" id="plane">`+
+    `<button class="icob" id="kbBtn" aria-label="Switch input mode"><svg class="ic-kb" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M9 14h6"/></svg><svg class="ic-mic" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/></svg></button>`+
+    `<button class="voice" id="voiceBtn"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/></svg><span id="voiceLbl">Hold to talk</span><span class="wave" aria-hidden="true">${'<i></i>'.repeat(16)}</span><svg class="chev" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg></button>`+
+    `<input id="freetext" type="text" placeholder="Message${text?' Alex':''}…" aria-label="Write your reply">`+
+    `<button class="icob" id="imgBtn" aria-label="Send a photo"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></button>`+
+    `<button class="icob" id="giftBtn" aria-label="Send a gift"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></button>`+
+    `<button class="send" id="sendBtn" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-6-8-2z"/></svg></button>`+
+    `</div>`;
+}
+function setZone(html){zone.innerHTML=html||'';}
 
 /* ============================================================
-   FLOW  a → b → c → d → e → f → g
+   FLOW  a -> b -> c -> d -> e -> f -> g
    ============================================================ */
 async function start(){
-  bal=100.12;gained=0;$('balAmt').textContent='100.12';
-  chat.innerHTML='<div class="day">今天</div>';zone.innerHTML='';clearCoach();
+  bal=100.12;gained=0;ci=1;$('balAmt').textContent='100.12';
+  chat.innerHTML='<div class="day">Today &middot; 9:41 PM</div>';setZone('');clearCoach();
   $('modal').classList.remove('show');$('toast').classList.remove('show');
-  Object.assign(HERO,{nm:'Jason'});$('cliN').textContent='Jason';$('cliV').innerHTML='在线 · <b>正在和你聊天</b>';
-  $('cliTag').textContent='新手引导';$('cliTag').style.display='';
-  renderRail(false);
-  msgIn("hey gorgeous 😍 been thinking about you all day");
-  await delay(750);
-  stepA();
+  $('cliN').innerHTML=HERO.nm;$('cliV').innerHTML=HERO.stat;$('blockBtn').style.display='';
+  renderRail('onb');
+  msgIn("Good evening gorgeous 😍 been thinking about you all day");
+  await delay(750);stepA();
 }
 
-/* a. AI 代回 → 收益 → tips + Next */
+/* a. AI auto-reply -> earnings -> tip + Next */
 async function stepA(){
-  aihint('AI 正在为你自动回复');
+  aihint('AI is replying for you');
   typing();await delay(1250);stopTyping();
-  msgOut("aww you're so sweet 🙈 my day just got better talking to you",{ai:true,meta:'<span class="ai">AI 代回</span> · 已发送'});
+  msgOut("aww you&rsquo;re so sweet 🙈 my evening just got better talking to you",{ai:true,earn:0.10});
   await delay(450);
-  await earn(0.30,'🤖 AI 代回收益');
-  const box=document.createElement('div');box.className='picker';
-  box.innerHTML=`<div class="tip"><span class="ti">🤖</span><span class="tx">AI 会帮助你回复赚钱 —— 你什么都不用做，收益自动到账</span></div>
-    <button class="nextbtn" id="nx">下一步 →</button>`;
-  setZone(box);
+  await earn(0.10,'AI reply earned');
+  setZone(`<div class="picker"><div class="ob-tip"><span class="ti">🤖</span><span class="tx">AI replies for you and earns money &mdash; you don&rsquo;t have to lift a finger.</span></div><button class="ob-next" id="nx">Next &rarr;</button></div>`);
   $('nx').onclick=()=>stepB();
 }
 
-/* b. 男 DH 回复 → 二选一 + 蒙层引导 */
+/* b. he replies -> two options + spotlight guide */
 async function stepB(){
   setZone('');
   typing();await delay(1150);stopTyping();
   msgIn("haha what are you up to tonight babe? 😏");
   await delay(500);
-  const box=document.createElement('div');box.className='picker';box.id='pkChoice';
-  box.innerHTML=`<div class="pk-ct">选一条回复发给对方</div>
-    <button class="opt" data-t="just thinking about who's gonna spoil me tonight 😏"><span class="tg">俏皮</span><span class="txt">just thinking about who's gonna spoil me tonight 😏</span><span class="go">›</span></button>
-    <button class="opt" data-t="nothing much, kinda wish you were here with me 🥺"><span class="tg">甜美</span><span class="txt">nothing much, kinda wish you were here with me 🥺</span><span class="go">›</span></button>`;
-  setZone(box);
+  setZone(`<div class="picker" id="pkc"><div class="pk-ct">Choose one reply to send</div>`+
+    `<button class="opt" data-t="just thinking about who&rsquo;s gonna spoil me tonight 😏"><span class="txt">just thinking about who&rsquo;s gonna spoil me tonight 😏</span><span class="go">&rsaquo;</span></button>`+
+    `<button class="opt" data-t="nothing much, kinda wish you were here with me 🥺"><span class="txt">nothing much, kinda wish you were here with me 🥺</span><span class="go">&rsaquo;</span></button></div>`);
   await delay(160);
-  coach(box,{text:'选择你觉得合适的回复内容发给对方',sub:'挑一条更能撩动对方的话术，点它发送 👇'});
-  box.querySelectorAll('.opt').forEach(o=>o.onclick=()=>chooseOpt(o));
+  coach($('pkc'),{text:'Pick the reply you think fits best and send it to him',sub:'Choose the line that draws him in the most 👇'});
+  document.querySelectorAll('#pkc .opt').forEach(o=>o.onclick=()=>chooseOpt(o));
 }
 async function chooseOpt(o){
-  o.classList.add('hit');await delay(200);clearCoach();
-  const t=o.getAttribute('data-t');setZone('');
-  msgOut(t);await delay(450);
-  await earn(0.50,'💬 二选一回复收益');
+  o.classList.add('hit');await delay(200);
+  const txt=o.getAttribute('data-t');clearCoach();setZone('');
+  msgOut(txt,{you:true,earn:0.30});
+  await delay(450);
+  await earn(0.30,'Quick pick earned');
   stepC();
 }
 
-/* c. 男 DH 回复 → 蒙层引导手动回复 */
+/* c. he replies -> guide manual reply */
 async function stepC(){
   typing();await delay(1150);stopTyping();
-  msgIn("you're trouble 😩 i like that. tell me something real about you");
+  msgIn("you&rsquo;re trouble 😩 i like that. tell me something real about you");
   await delay(500);
-  const box=document.createElement('div');box.className='picker';
-  const plane=buildPlane('回复消息…',{text:true});box.appendChild(plane);
-  setZone(box);
+  setZone(`<div class="picker">${planeHTML(true)}</div>`);
   await delay(150);
-  coach($('freetext'),{text:'友好的回复对消息获得更多收益',sub:'亲手打一句话发给对方吧 ✍️'});
+  coach($('freetext'),{text:'A friendly reply earns you more',sub:'Type a message to him yourself ✍️'});
   $('freetext').focus();
   const fire=async()=>{
     const v=$('freetext').value.trim();clearCoach();setZone('');
-    msgOut(v||"you gotta earn my secrets first 😉 tell me about you");
+    msgOut(v?v.replace(/</g,'&lt;'):"you gotta earn my secrets first 😉 tell me about you",{you:true,earn:0.50});
     await delay(450);
-    await earn(0.80,'✍️ 手动回复收益');
+    await earn(0.50,'Manual reply earned');
     stepD();
   };
   $('sendBtn').onclick=fire;
   $('freetext').addEventListener('keydown',e=>{if(e.key==='Enter')fire();});
 }
 
-/* d. 男 DH 回复 → 蒙层 + 引导发语音 */
+/* d. he replies -> guide voice note */
 async function stepD(){
   typing();await delay(1150);stopTyping();
   msgIn("i love your energy 🔥 say it to me, i wanna hear your voice");
   await delay(500);
-  const box=document.createElement('div');box.className='picker';
-  box.appendChild(buildPlane('发一条消息…'));setZone(box);
+  setZone(`<div class="picker">${planeHTML(false)}</div>`);
   await delay(150);
-  coach($('voiceBtn'),{text:'给对方发送一条语音消息获得更多收益',sub:'真实的声音信任感翻倍，按住蓝色按钮说话 🎧'});
+  coach($('voiceBtn'),{text:'Send him a voice message to earn even more',sub:'Real voice doubles his trust &mdash; hold the blue bar 🎧'});
   $('voiceBtn').onclick=async()=>{
     clearCoach();setZone('');
-    msgOut(VBUB);
+    msgOut(VBUB,{you:true,earn:1.20});
     await delay(500);
-    await earn(1.20,'🎤 语音消息收益');
+    await earn(1.20,'Voice message earned');
     stepE();
   };
 }
 
-/* e. 男 DH「send me a pic?」→ 蒙层 + 引导发自拍 */
+/* e. "send me a pic?" -> guide selfie */
 async function stepE(){
   typing();await delay(1150);stopTyping();
-  msgIn("okay now i'm obsessed 😍 send me a pic? 🥺");
+  msgIn("okay now i&rsquo;m obsessed 😍 send me a pic? 🥺");
   await delay(500);
-  const box=document.createElement('div');box.className='picker';
-  box.appendChild(buildPlane('发一条消息…'));setZone(box);
+  setZone(`<div class="picker">${planeHTML(false)}</div>`);
   await delay(150);
-  coach($('camBtn'),{text:'发送一张自拍，对方会更愿意给你花钱哦',sub:'一张自拍能让对方付费意愿大幅提升 📈'});
-  $('camBtn').onclick=async()=>{
+  coach($('imgBtn'),{text:'Send a selfie &mdash; he&rsquo;ll be way more willing to spend on you',sub:'One photo boosts his willingness to pay 📈'});
+  $('imgBtn').onclick=async()=>{
     clearCoach();setZone('');
-    msgOut('<div class="pb"><div class="ph">📸 你的自拍</div></div>');
+    msgOut('<div class="ph">📸 Your selfie</div>',{you:true,earn:2.50,cls:'pb'});
     await delay(600);
-    await earn(2.00,'📷 自拍消息收益');
+    await earn(2.50,'Selfie earned');
     stepF();
   };
 }
 
-/* f. 发消息栏消失 → 完成提示 */
+/* f. input bar disappears -> task complete */
 async function stepF(){
   typing();await delay(1050);stopTyping();
-  msgIn("you're stunning 😍 i'm gonna spoil you so good tonight 💸");
+  msgIn("you&rsquo;re stunning 😍 i&rsquo;m gonna spoil you so good tonight 💸");
   await delay(700);
-  setZone(''); // 底部发消息栏消失
-  $('modalTot').textContent='$'+gained.toFixed(2);
+  setZone(''); // bottom input bar disappears
+  $('modalTot').innerHTML='&cent;'+gained.toFixed(2);
   $('modal').classList.add('show');
   $('modalCta').onclick=()=>{$('modal').classList.remove('show');stepG();};
 }
 
-/* g. 自动切换到下一位真人男用户（若有） */
+/* g. auto-switch to next real male (if any) */
 async function stepG(){
   if(REAL_QUEUE.length===0){
-    // 没有真人消息 → 不跳转
-    $('toastT').textContent='暂无真人男用户消息';
-    $('toastS').textContent='保持在线，有新消息会自动为你切换';
+    $('toastT').textContent='No real-user messages yet';
+    $('toastS').textContent="Stay online — we’ll switch you automatically when one arrives";
     $('toast').querySelector('.sp').style.display='none';
     $('toast').classList.add('show');await delay(2600);$('toast').classList.remove('show');return;
   }
   $('toast').classList.add('show');
   await delay(1900);$('toast').classList.remove('show');await delay(300);
-  // 切到真人
-  const u=REAL_QUEUE[0];Object.assign(HERO,{});
-  renderRail(true);
-  $('cliN').textContent=u.nm;$('cliV').innerHTML='在线 · <b>真人用户</b>';
-  $('cliTag').style.display='none';
-  chat.innerHTML='<div class="day">已切换 · 真人用户</div>';
+  const u=REAL_QUEUE[0];ci=1;
+  renderRail('real');
+  $('cliN').innerHTML=u.nm;$('cliV').innerHTML=u.stat;
+  chat.innerHTML='<div class="day">Switched &middot; real user</div>';
   msgIn(u.msg);
   await delay(400);
-  aihint('AI 已接管 · 继续为你赚钱中');
-  const box=document.createElement('div');box.className='picker';box.appendChild(buildPlane('回复 '+u.nm+'…'));setZone(box);
+  aihint('AI has taken over &middot; earning for you');
+  setZone(`<div class="picker">${planeHTML(false)}</div>`);
 }
 
-$('replay').onclick=()=>{document.querySelectorAll('.modal,.toast').forEach(e=>e.classList.remove('show'));start();};
+$('replay').onclick=()=>{document.querySelectorAll('.ob-modal,.ob-toast').forEach(e=>e.classList.remove('show'));start();};
 start();
+
 </script>
 </body>
 </html>
