@@ -598,7 +598,6 @@
 
   <div class="ob-toast" id="toast"><div class="sp"></div><div class="tt" id="toastT">Switching you to the next chat&hellip;</div><div class="ts" id="toastS">1 online real user found</div></div>
 
-  <button class="ob-replay" id="replay">&#8635; RESTART</button>
 </div>
 
 <aside class="note">
@@ -686,7 +685,7 @@ function earn(amount,label){
 
 /* ── coach mask + pointing finger ── */
 let spot=null,block=null,coachEl=null;
-function coach(target,{text,sub,mask=true}={}){
+function coach(target,{text,sub,mask=true,fixedTop=null}={}){
   clearCoach();
   if(mask){block=document.createElement('div');block.className='ob-block';phone.appendChild(block);
     target.classList.add('ob-spot');spot=target;}
@@ -695,6 +694,10 @@ function coach(target,{text,sub,mask=true}={}){
   phone.appendChild(coachEl);
   placeHand(target);
   const c=coachEl;
+  if(fixedTop!=null){ // caption pinned in the chat area (used when the target sits over the keyboard)
+    c.style.top=Math.round(phone.getBoundingClientRect().height*fixedTop)+'px';
+    return;
+  }
   requestAnimationFrame(()=>{
     if(!c||!c.isConnected||!target||!target.isConnected)return;
     const pr=phone.getBoundingClientRect(),tr=target.getBoundingClientRect();
@@ -797,12 +800,9 @@ async function start(){
   await delay(750);stepA();
 }
 
-/* a. AI auto-reply -> earnings -> tip + Next (no Block on blue) */
+/* a. intro tip + Next (no auto-reply bubble, no earnings popup at the start) */
 async function stepA(){
-  await delay(550);
-  msgOut("aww you&rsquo;re so sweet 🙈 my evening just got better talking to you",{ai:true,earn:0.10});
   await delay(450);
-  await earn(0.10,'AI reply earned');
   setZone(`<div class="ob-tip"><span class="ti">🤖</span><span class="tx">AI replies for you and earns money &mdash; you don&rsquo;t have to lift a finger.</span></div><button class="ob-next" id="nx">Next &rarr;</button>`);
   $('nx').onclick=()=>stepB();
 }
@@ -833,24 +833,21 @@ async function stepC(){
   msgIn("you&rsquo;re trouble 😩 i like that. tell me something real about you");
   await delay(500);
   setZone(planeHTML(true));
-  await delay(150);
-  coach($('freetext'),{text:'A friendly reply earns you more',sub:'Tap the field and type your reply ✍️'});
   const doSend=async()=>{
     const inp=$('freetext');const v=(inp.value||'').trim();
     retSend=null;clearCoach();closeKb();setZone('');
     msgOut(v?v.replace(/</g,'&lt;'):"you gotta earn my secrets first 😉 tell me about you",{you:true,earn:0.50});
     await delay(450);await earn(0.50,'Manual reply earned');stepD();
   };
-  const openForType=e=>{
-    if(e){e.preventDefault();}
-    if(ioskb.classList.contains('open'))return;
-    clearCoach();openKb();retSend=doSend;
-    setTimeout(()=>{const rk=document.querySelector('#ioskb .kk.ret');if(rk)coach(rk,{text:'Tap “return” to send',sub:'No send button — the keyboard’s return key sends it',mask:false});},160);
-  };
-  // tap the field (or anywhere on the bar) raises the keyboard — pointer/touch for mobile, click for desktop
+  retSend=doSend;
+  await delay(220);
+  openKb();  // input auto-raises with the keyboard
+  setTimeout(()=>{const rk=document.querySelector('#ioskb .kk.ret')||$('freetext');coach(rk,{text:'Type your reply, then tap “return” to send',sub:'No send button — the keyboard’s return key sends it',mask:false,fixedTop:0.40});},560);
+  // fallback: tapping the field re-raises the keyboard if it was closed
+  const reopen=e=>{ if(e)e.preventDefault(); if(!ioskb.classList.contains('open')) openKb(); };
   const ft=$('freetext'), pl=$('plane');
-  ['pointerdown','touchstart','click'].forEach(ev=>ft.addEventListener(ev,openForType,{passive:false}));
-  pl.addEventListener('click',e=>{ if(!e.target.closest('#voiceBtn,#imgBtn,#giftBtn,#kbBtn')) openForType(e); });
+  ['pointerdown','touchstart','click'].forEach(ev=>ft.addEventListener(ev,reopen,{passive:false}));
+  pl.addEventListener('click',e=>{ if(!e.target.closest('#voiceBtn,#imgBtn,#giftBtn,#kbBtn')) reopen(e); });
 }
 
 /* d. voice note — hold to record / release to send / swipe up to cancel */
@@ -916,7 +913,6 @@ async function stepG(){
   function armVoiceReattach(){armVoice(async(d)=>{if(d==null)return;setZone(planeHTML(false));msgOut(vbub(d),{you:true});armVoiceReattach();});}
 }
 
-$('replay').onclick=()=>{document.querySelectorAll('.ob-modal,.ob-toast').forEach(e=>e.classList.remove('show'));start();};
 start();
 
 </script>
