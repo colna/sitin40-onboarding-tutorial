@@ -470,6 +470,8 @@
 
 
 /* ── onboarding additions (all copy EN) ── */
+.obpane{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;position:relative;
+  transition:padding-bottom .38s cubic-bezier(.2,.9,.25,1)}
 .ob-tip{display:flex;gap:10px;align-items:flex-start;background:var(--blue-dim);
   border:1px solid oklch(0.46 0.19 262 / .18);border-radius:14px;padding:11px 13px;margin-bottom:9px;
   animation:msgin .3s cubic-bezier(.16,1,.3,1)}
@@ -482,7 +484,6 @@
 .pk-ct{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
   text-align:center;margin-bottom:9px}
 @keyframes msgin{0%{opacity:0;transform:translateY(9px)}100%{opacity:1;transform:none}}
-/* photo bubble */
 .bub.pb{padding:5px}
 .pb .ph{width:150px;height:196px;border-radius:13px;display:flex;align-items:flex-end;padding:9px;
   font-size:11px;font-weight:600;color:#fff;background:linear-gradient(155deg,#fda4af,#c084fc,#818cf8)}
@@ -501,9 +502,8 @@
 .ob-coach .ch .st{margin-left:auto;color:var(--faint)}
 .ob-coach .cx{font-family:var(--display);font-size:16px;font-weight:600;line-height:1.35;color:var(--text)}
 .ob-coach .cs{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.45}
-/* the pointing finger sits above the veil */
-.hand.ob{z-index:47;display:flex}
-/* completion modal */
+.hand.ob{z-index:49;display:flex}
+/* modal + toast + replay */
 .ob-modal{position:absolute;inset:0;z-index:70;background:oklch(0.2 0.03 262 / .55);display:flex;align-items:center;
   justify-content:center;padding:26px;opacity:0;pointer-events:none;transition:opacity .3s}
 .ob-modal.show{opacity:1;pointer-events:auto}
@@ -519,7 +519,6 @@
 .ob-card .cta{width:100%;height:46px;border:none;border-radius:999px;background:var(--blue);color:var(--onaccent);
   font-size:14.5px;font-weight:600;cursor:pointer;transition:background .15s}
 .ob-card .cta:hover{background:var(--blue-deep)}
-/* switch toast */
 .ob-toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:66;
   background:oklch(0.22 0.03 262 / .96);color:#fff;border-radius:18px;padding:18px 22px;text-align:center;
   box-shadow:0 18px 44px oklch(0.2 0.03 262 / .5);width:72%;opacity:0;transition:opacity .3s;pointer-events:none}
@@ -531,17 +530,14 @@
 .ob-toast .ts{font-size:11px;opacity:.7;margin-top:4px}
 .ob-replay{position:absolute;top:30px;right:14px;z-index:80;background:oklch(0.2 0.03 262 / .5);color:#fff;
   font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:5px 10px;border:none;border-radius:999px;cursor:pointer}
-.send{width:40px;height:40px;border-radius:50%;border:none;background:var(--blue);color:#fff;cursor:pointer;
-  align-items:center;justify-content:center;flex:0 0 auto;display:none}
-.send svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.pk-own.text .voice{display:none}.pk-own.text input{display:block}.pk-own.text .send{display:flex}
+/* input plane: no send button; input shown only in text mode */
+.pk-own.text .voice{display:none}.pk-own.text input{display:block}
 .pk-own input{display:none;flex:1 1 auto;height:44px;border-radius:999px;border:1px solid var(--rule);
-  background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13.5px;padding:0 16px;min-width:0}
+  background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13.5px;padding:0 16px;min-width:0;caret-color:var(--blue)}
 .pk-own input::placeholder{color:var(--muted)}
-
+/* typing dots */
 .typing-b{background:var(--raised-2)!important;padding:12px 15px!important}
-.td{display:flex;gap:4px}
-.td i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:tpd 1.2s infinite}
+.td{display:flex;gap:4px}.td i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:tpd 1.2s infinite}
 .td i:nth-child(2){animation-delay:.15s}.td i:nth-child(3){animation-delay:.3s}
 @keyframes tpd{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
 </style>
@@ -549,21 +545,34 @@
 <body>
 <div class="phone" id="phone">
   <div class="notch"></div>
-
   <div class="top">
     <div class="rail" id="rail"></div>
     <div class="bal"><div class="amt num"><sup>&cent;</sup><span class="amtwrap"><span id="balAmt">100.12</span></span></div></div>
   </div>
-
   <div class="client" id="client">
     <span class="n" id="cliN">Alex, 66</span>
     <span class="v num" id="cliV"><b>&cent;42.50</b> spent &middot; 34 &hearts;</span>
-    <button class="blockbtn" id="blockBtn">Block</button>
   </div>
 
-  <div class="chat" id="chat"><div class="day">Today &middot; 9:41 PM</div></div>
+  <div class="obpane" id="paneA">
+    <div class="chat" id="chat"><div class="day">Today &middot; 9:41 PM</div></div>
+    <div id="zone"></div>
+  </div>
 
-  <div id="zone"></div>
+  <div class="ioskb" id="ioskb" aria-hidden="true">
+  <div class="kbsug"><span class="s sel">&ldquo;The&rdquo;</span><span class="s">the</span><span class="s">to</span></div>
+  <div class="kbrows">
+    <div class="kr"><button class="kk" data-k="q">q</button><button class="kk" data-k="w">w</button><button class="kk" data-k="e">e</button><button class="kk" data-k="r">r</button><button class="kk" data-k="t">t</button><button class="kk" data-k="y">y</button><button class="kk" data-k="u">u</button><button class="kk" data-k="i">i</button><button class="kk" data-k="o">o</button><button class="kk" data-k="p">p</button></div>
+    <div class="kr kr2"><button class="kk" data-k="a">a</button><button class="kk" data-k="s">s</button><button class="kk" data-k="d">d</button><button class="kk" data-k="f">f</button><button class="kk" data-k="g">g</button><button class="kk" data-k="h">h</button><button class="kk" data-k="j">j</button><button class="kk" data-k="k">k</button><button class="kk" data-k="l">l</button></div>
+    <div class="kr kr3"><button class="kk fn" aria-label="Shift"><svg viewBox="0 0 24 24"><path d="M12 4 4.5 12H9v6h6v-6h4.5z"/></svg></button><span class="mid"><button class="kk" data-k="z">z</button><button class="kk" data-k="x">x</button><button class="kk" data-k="c">c</button><button class="kk" data-k="v">v</button><button class="kk" data-k="b">b</button><button class="kk" data-k="n">n</button><button class="kk" data-k="m">m</button></span><button class="kk fn del" aria-label="Delete"><svg viewBox="0 0 24 24"><path d="M21 6H9l-6 6 6 6h12a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1z"/><path d="m12 10 4 4m0-4-4 4"/></svg></button></div>
+    <div class="kr"><button class="kk abc">ABC</button><button class="kk space" data-k=" ">space</button><button class="kk ret">return</button></div>
+  </div>
+  <div class="kbfoot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c.9 1.2 2.1 1.8 3.5 1.8s2.6-.6 3.5-1.8"/><path d="M9 10h.01M15 10h.01"/></svg><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/></svg></div>
+  <div class="kbhome"><i></i></div>
+</div>
+
+  <div class="rec-scrim" id="recScrim"></div>
+  <div class="rec-target" id="recTarget"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></div>
 
   <div class="earnpop" id="earnpop" aria-live="polite">
     <div class="ep-card">
@@ -594,50 +603,50 @@
 
 <aside class="note">
   <h2>SITIN 4.0 &middot; Onboarding tutorial</h2>
-  <p><span class="k">a.</span> She opens the chat &rarr; <b>AI auto-replies</b>, the gold coin pops and the balance rolls up &rarr; tip <em>&ldquo;AI replies for you and earns money&rdquo;</em> + <b>Next</b>.</p>
-  <p><span class="k">b.</span> Tap Next, he replies &rarr; <b>two options</b> appear under a spotlight mask &mdash; <em>Pick the reply that fits best and send it</em>. A finger points the way.</p>
-  <p><span class="k">c.</span> After the pick &rarr; coin (2s) &rarr; mask guides a <b>manual reply</b>: <em>A friendly reply earns you more</em>.</p>
-  <p><span class="k">d.</span> After typing &rarr; coin (2s) &rarr; mask guides a <b>voice note</b>: <em>Send a voice message to earn more</em>.</p>
-  <p><span class="k">e.</span> After the voice &rarr; coin (2s) &rarr; he asks <em>&ldquo;send me a pic?&rdquo;</em> &rarr; mask guides a <b>selfie</b>.</p>
-  <p><span class="k">f.</span> After the photo &rarr; coin (2s) &rarr; the input bar disappears &rarr; <b>task-complete</b> card.</p>
-  <p><span class="k">g.</span> Then the <b>auto-switch</b> logic jumps to a real user (Don). No real message waiting &rarr; no jump. Never switches before onboarding is done.</p>
+  <p><span class="k">a.</span> She opens the chat &rarr; <b>AI auto-replies</b>, the coin pops &amp; balance rolls &rarr; tip &ldquo;AI replies for you and earns money&rdquo; + <b>Next</b>. No Block button on the blue (normal) state.</p>
+  <p><span class="k">b.</span> Tap Next, he replies &rarr; <b>two options</b> under a spotlight mask &mdash; <em>Pick the reply that fits best and send it</em>. A finger points the way.</p>
+  <p><span class="k">c.</span> After the pick &rarr; coin (2s) &rarr; guide to <b>manual reply</b>. Tapping the field raises the iOS keyboard; there is no send button &mdash; <b>return</b> sends.</p>
+  <p><span class="k">d.</span> Then a <b>voice note</b>: <em>hold to record, release to send, swipe up to cancel</em>.</p>
+  <p><span class="k">e.</span> Then he asks &ldquo;send me a pic?&rdquo; &rarr; guide to a <b>selfie</b>.</p>
+  <p><span class="k">f.</span> After the photo &rarr; coin (2s) &rarr; input bar disappears &rarr; <b>task-complete</b>.</p>
+  <p><span class="k">g.</span> Then <b>auto-switch</b> to a real user (Don). No real message &rarr; no jump; never switches before onboarding is done.</p>
+  <p style="color:var(--faint);font-size:11px">Avatar rings are a plain blue halo (not a progress bar). The <em>Blocking</em> button only exists in the red state.</p>
 </aside>
 
 <script>
 
 const $=id=>document.getElementById(id);
-const chat=$('chat'), zone=$('zone'), phone=$('phone'), hand=$('hand');
+const chat=$('chat'), zone=$('zone'), phone=$('phone'), hand=$('hand'), paneA=$('paneA');
+const ioskb=$('ioskb'), recScrim=$('recScrim'), recTarget=$('recTarget');
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 let bal=100.12, gained=0;
 const AV_ALEX="data:image/jpeg;base64,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", AV_DON="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAYKADAAQAAAABAAAAYAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAYABgAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAgICAgICBAICBAYEBAQGCAYGBgYICggICAgICgwKCgoKCgoMDAwMDAwMDA4ODg4ODhAQEBAQEhISEhISEhISEv/bAEMBAwMDBQQFCAQECBMNCw0TExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTE//dAAQABv/aAAwDAQACEQMRAD8A/Gzxho9zY3Nl4SVSs9lF5lyDwUlcAlD7omxT6EEV5i9s098yMdxzjnmvo/VNMTQ/Ctz4q1di99qJMh3/AHhvOec9zncfc+1eQ/D7wbqnxC8Zaf4R0hglxqk6xB2+6ityzt7KoLH6VpNciuzKLu7I5KHR7mVHnt+Y1OCff0/LmoRtg4cY9fav1s/al+Anwq+EHwa0jxd4RcW+oyQi3urNjlL2G2Yp9pYDPlyhiuyQHL7iCMZz+S9/dQ3rhoVIL8Y9c1z0K3tYqa2Zco23IFuGbcVIXHTg8/nU6XO5BuwDUsPhnXr26NnbW7O6nB284I65Iz0rpdF+G+t628qWr7BEhfcynbwATkjOOox65GOvG4mji/7Ri80loVk9M5zgdK1Rq9qYjHFaPGX+8VmYAj0x0qS88JapBK8dm0d75YyxgYtgepBAP5ZFcxudGKsCCOCOaVkUdQuq28F3DdW/2mFoiGJLrJyOQQCAPwINS61rja1dy3d5PLIz/wATxICfY7AAB9K5QTMOmad58g7mjlXYVvI61NVsms0sylpyoBd45EYYJPLKcHPQ8flVJ7qR3Elu8cYboscpXaRxnBPeuf8AtBPD8/hTTIh+8BUqCXQLeR//0PyA+MPi6HVtWOkWz5jt22tjpkf1r6A/Y18P2j6nq3jOYPutofstu6P5fltKCWcuRgAYA68k4718ONdPdyS+YvmSyNznHJY/41+xU3w78K/Bj9k3wy+rQRC/1m0e8kbYVlEskhLk5BLCKJQBnA3HjPNePxC6lWgsLTdnUajfst2/uQUqWjaeyufHH7UvxZ1LxS1v4RWfzUfbIT3EKE+UuMnG4lpCMn7y+mB574B+DmsXi6bdWWnvqupaiDJbWS48tYQR+9uGDDajDIxkHoR6U34KeEf+F8fH+z07URut7qd7iVf+mEKlggz64Va/o00L4S+HvBNgFEYN06qJ5QADI6rjgDGFUAKijhVAArXG4hYChGnRjtoj08py5Yupao7Jf1Y/N3QvhR8VrWzi1TXLiztb7o62qbfMj2MnlOwGDtBGGxnIySawV+HCeH9Nuk1+y8+5uYpoy8CrGFSZdshVkwQ20BQSpwckAZxX6P6pb6W05tplMfOATXB6vols7tCT8p6HsRXzlPPcSneVmj7GrwxhJq0bp+p+LHxG8M6Z4XsJtfso2tr9PJASI7FBY4GFyWwuVwCTwct8wxXlWreHrj4gywazFfx3OpzhYpI3DK7vnZGq7Q2449dvGOK/Ur4xfCPTtYspNQhgiaeMbl3KSjEZI3KCNwB5APGa/Nnw7JPpHjW2nureaz+x3a3F3Oi5IEcgbeigEqsfHqWB56CvpMJj/rNNyhpJHx2Y5XPBVOV6p7M88Hwc8cyfaRa2bTfZH2SlDnZ0yTxnALAE+pFYOt/DzxT4es2vtXt/JiR1jLb0b5mGVGA2eR3xiv3D8HeE/wC29R1jUZdXulh1N2dPs7/ZxDMzbzKjDcWJGFIZeB0wa+Hf2qP2frjwBb6FKutPq15r2o/Z0VodrNwCzs4J3YZlCjGcE0YfF1ZztNq3ocFSjKOq2Pjqy+DfjvUkT+z7eOaR1VhGJUDgOMrkMQASDnGa6rUP2Y/jZpWhHxNf6I62IcR+ak1u4LMpcAbZcnhTyMjIx14r9EvGn7Kc/hfTNPttPuhbyNMUldd0vmOVGzAIjCLlTu6nBzk4xXxj+0X438WWevr8KNN1e5TSdEAR7eGVo4JbrrLMY0baW3ZUMcttAGa3hXqVZWhaxDTj8R//0fyU/Ze8K+F/Evxq0OPxvcRW2j2sxvb6SXBXyrbMhTHJJcqFCgEnNfYX/BQH9obw58R72DR/CPnNCkOwvIdqnzCCdichRhR0/Gvmz4DeI9S+C8ekfF+5tFvtNvLu5064tpcHzIvLjYsoYEDD5w/95QK0/jNpfhLUPFV140+IEptkvGM8NnprL85dRtWIuHCoowWcgg5IVfTxp5W6+aQzGbdoRstfdu27+71durH7ZKHs77vU92/4J6/CTxZZ/EXTviDqNq0em30EqW8gCv5uxlZhgHKfdyCeoPHBr9cfip8Qta8LX/n6Y+mzSyLuFpPdLHM2BzjOcEemOK8i/wCCdmm6dqf7PFjrlomIolkiyM58zOx+euV24zgD5uOKs/F74E+F/iNNNbQaHaRSNJveZZJIpJCDxuZASep/lXn43FuVT98rdNr7H2+Ay1RhbDSb0T+bSf4G54e+J0HxOslS402TT70OqGJ8H5j1IYcFe+fSuj1n+wYbQwWziSQErlTg5x/jWJ4H+H9r8FPBVxbzyLLM64Cks2xOeBu54zj6Yr88/HNj4n1/xJc60kE+oWqu7LaRXT2rlQRxEQCGdhnjPboa8yFONaTR7s5zoUlLc+1tWtPIiLXKhkIP4V+ZnxxlsdF8QarJprYlt4Rcb8jahPyj6k5xjoe/avYtJ+IP2MfZvDbalZTw7PtOj6q3muEfjdHJgFlH0HPWvi/4y66b3xVf2MxOJZirsgyQqfLhjwcE5yBkV7mU4fkqvl2sfJ55ifa0FzLW5zWm/tD/ABe0qXzbHX3HOSpRNp/DFauq/tC+LfHfijwve/E6/E1noV8Jw0EI3BSULHYGAYgIMDjqea8FvLPSrS7NrcI6kYOeTwRkHg8gjmr2mppSzqLGXEgOQDkH9a+h9nHoj5LnZ+gvjr9sfR/Fl2stpqs0Qt28xN9tt3sAePvHb196+DNZ1+HXdauNXvJt8lw7OzHqSef1Nbenan4iDS2/2tzCw2bCARj05FZ83g+O+mMztt3HdwAOfwqaGFVK6iEp33Z//9L4H8e+Gfh/4R+EWleDbLa+t3EMF28mMyFwu+RTkFlXlgF46c45r408VW94hiuJWZ1ICAsScbegGeg9K9F1/wAaz2XjOWS/drq5SYi8lY/wq214lIyMdVLZO7HpXdeJvAq3No1pISYpQGikxglWAZGH1BGfyrok7uyOeEeXVn7Zf8E8/EEnhf8AZG0iec+ej/aZAXA4HnONowTkLjAzziuq0rxR4y8f+IjrrwSJ4ftZGLLCNjTsmRtU9MbgMkn2FeBf8E9ru7vf2Z7rwhGF+1adqF3beWTyokfePpyTj6GvrjUPAN/4G8JQyf8ACSTadFCF3xgAxHq20Z5HJ69+K+IxSk8ROE9kz9GymcfZU3Tsm0rv00PNPjD8avCug6ZA/iW3/swuCGilYeYuOBu5IyRzweleUfDj/hDfGiXOmwSQzllWZUfDBlcnjpgkY/DNcd8TJ57u0eVI9M18sfmMrhZvplQQD68VB8J9OuVdtYg0mTSWCMpiYqRt4O5WXggmoq0rRbPbrc1CcYTtZ+v6/wCZ1vxE8DeD/DGkz67LbJ5tsjFS2WZT14Y849ulfl18Wp9Omu7DTLRlZ4Y/NmVVA2PKAxBIAJY9TnPavrv9pj4q/wBlaI2lXkhZbpxF8p5YLyePwwfrX5yHV7jVbyTUL07pZ2Lue2W5OPavUyXDNr272PkOIMdGPNh4rV/hrchurG2eMKoG9GII9jyD+eaxNSshb2vmqMMHTH4sK6hrgm5+zbgEK7iPccZ/KqGrbXSCIfxzxD/x4GvpUfHFWyhuLTM4AMaPhweuDjkfTNdLHq+jI2wXEfH+0KpatEi6POV6k8/p/hVi00jSDAm+2jJwM5UVsiW+5//T/ILxV8EfGvhmSPTrSIXMd31uEyEJGTtcknYeOh68d+B9KeA7K+1TwLa6brCL9t0xfs823kqvJj3ZA528dTwK5PUPirZ6jBa3upKAob7HqVuv3LiCTIWTbyA8bggMOcbayfhp47j8D+PbzQdYuDJYXOIA7HP3fmjdscn5WH0B611SilqjK99Gffv7MOu3/wALLfWPFqLEdMFzCuoIflI3oRHKepI+QqMA/Ma/Qr4qfEbwPrHw/kEc8Vwb6IbADkKrAEMTxyB0HrxX50eBfGkPgTXJb8Wn23TL2IwX0GAyywnncM/xITkZ68+uRyPxG8L+IZL0698NdUF/oFwq+QuCZLfC4KnJJJJHRhnOcnuPnMdCKrN1NL7Pp6Nn02XTl7JOlq47pb+q7naeCfAXhjRfFE10bhpbeKMOsO4MATklx3+Yn9K9P1/4kaZpGkXKRTCBI48MeAI0HXPv7V+U1/42+LC+Jgulx3P2iPdGuUYHHTkEd+vOea2dX8F+KbHwtdeNviZeu/loTDasfvyMCFU46gnqMfXisKmEg2vaT37anXDH1XFxp02kt76HlXx7+KJ8eeM2k0wsLGzUxQg9+fmY+54rx2DXL6EYznNVo1YxyN/ErYz7Gum0y9sInVL2ASrweCQcfy/SvoqNFU4KENj5StWdWbnPdlvRLy6vPMnVC8qcHg8A4GM9ueOnWr8V7eXGo20V1bSRqkquWP3eDnqOK77SdH0DWI8aZhHHJTow/wA+tP1nwybnTZtMk3GdV8y3fuWX+A+oPp+VbcrRz3OJvNZjuFubSMgkKWH5VuCw05h5j7ySB0kYf1rxmCeAAEbvMbcH74X/ADnNbc+uI7/LcttAAGE9vqKcZ9wcD//U/EzTQ19abHbHmSqCfRR8xOPbFRzTtq7alqWSrRyLNGe+1fk/liqmkTFbNkPUhsfjx+vSum0m1iW3v4VOFFm2W7FlZf6112ukzLqfR3wf+KD3On/8I7qrfMikKzHqAM7RnpjAIP412niC/wDEFtv1bwdcy2F6rEHYSUmAPKMDkHbliCfb1r4u0ud7K7t7tW2hyFY+hHKN/Q+oNfQ+meIbjUrBZwT5mGDJuPykcHnkDBHfHTpWU4cytJaGtOo4vmi7M03+PPxD0WVb+9stOu5JFwJHiYOMdztOPzrw3x38S/F/xCuVk8SzK0cXMcMK7EB9cc1seMvMhhWa3RmjmYrID1z2OeDj098157NbyR2yPFBsMhwGPPbnFZUcFRg+eMFc2rZhiKkfZzm2jm1haKKaVhnLDmiBNmfcg/lXRPZqdHlmHIVlwPpVOO03oGHPtXU49jjuatuJYn820YrJHyCDgj6V2un+KLm5iNpqzlnU/u5ccgjscdc1xaFoZUlTncvI9dvH51buxGghmi5WSQfkAT+HSrWq1E1Yp6npz2GsT3mmyGP7SpOcAHbIPmXHOOcj1xXNposWdpXkdc9f513+q6rb2VlDd3kIlAyhbHT0Bxj9a5mTxrp6yxC0tFIDgtuHUdCOtRKMUwUpM//Z";
 const HERO={nm:'Alex, 66', av:AV_ALEX, stat:'<b>&cent;42.50</b> spent &middot; 34 &hearts;'};
-// real male users to auto-switch to once onboarding is done (empty => no switch)
 const REAL_QUEUE=[{nm:'Don, 58', av:AV_DON, stat:'<b>&cent;18.00</b> spent &middot; 12 &hearts;',
   msg:"hey beautiful, saw your profile 😌 free to chat for a bit?"}];
 let clock=[' 9:41',' 9:42',' 9:43',' 9:44',' 9:45',' 9:46',' 9:47',' 9:48'], ci=1;
-const t=()=>clock[Math.min(ci++,clock.length-1)].trim();
+const tm=()=>clock[Math.min(ci++,clock.length-1)].trim();
+const fmt=s=>'0:'+String(s).padStart(2,'0');
 
-/* ── rail ── */
-const C=2*Math.PI*14.5;
-function arc(pct,color){return `<circle class="arc" cx="16" cy="16" r="14.5" style="stroke:${color}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-pct)).toFixed(1)}" stroke-linecap="round"/>`;}
+/* ── rail: plain blue halo ring (no progress bar) ── */
+function haloRing(color){return `<circle class="arc" cx="16" cy="16" r="14.5" style="stroke:${color};stroke-width:2.5" pathLength="1" stroke-dasharray="1 0"/>`;}
 function renderRail(active){
-  const rail=$('rail');
+  const rail=$('rail'), u=REAL_QUEUE[0];
   if(active==='real'){
-    const u=REAL_QUEUE[0];
     rail.innerHTML=
-      `<button class="q b sel cur" aria-label="${u.nm}"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/>${arc(.4,'var(--blue)')}</svg><img src="${u.av}"></button>`+
-      `<button class="q" aria-label="Alex done"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/>${arc(1,'oklch(0.7 0.02 260)')}</svg><img src="${AV_ALEX}"></button>`;
+      `<button class="q b sel cur" aria-label="${u.nm}"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/>${haloRing('var(--blue)')}</svg><img src="${u.av}"></button>`+
+      `<button class="q" aria-label="Alex done"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/></svg><img src="${AV_ALEX}"></button>`;
   }else{
     rail.innerHTML=
-      `<button class="q b sel cur" id="alexQ" aria-label="Alex"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/>${arc(.28,'var(--blue)')}</svg><img src="${AV_ALEX}"></button>`+
-      `<button class="q b" id="donQ" aria-label="Don waiting"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/>${arc(.4,'var(--blue)')}</svg><img src="${AV_DON}"><span class="bdg">1</span></button>`;
+      `<button class="q b sel cur" id="alexQ" aria-label="Alex"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/>${haloRing('var(--blue)')}</svg><img src="${AV_ALEX}"></button>`+
+      `<button class="q" id="donQ" aria-label="Don waiting"><svg viewBox="0 0 32 32"><circle class="track" cx="16" cy="16" r="14.5"/></svg><img src="${AV_DON}"><span class="bdg">1</span></button>`;
   }
 }
 
 /* ── chat render ── */
 function scrollDown(){requestAnimationFrame(()=>{chat.scrollTop=chat.scrollHeight+500});}
 function msgIn(text){const m=document.createElement('div');m.className='msg in';
-  m.innerHTML=`<div class="bub">${text}</div><div class="meta"><span class="num">${t()}</span></div>`;
+  m.innerHTML=`<div class="bub">${text}</div><div class="meta"><span class="num">${tm()}</span></div>`;
   chat.appendChild(m);scrollDown();return m;}
 function msgOut(html,{ai=false,you=false,earn=null,cls=''}={}){
   const m=document.createElement('div');m.className='msg out';
@@ -645,23 +654,24 @@ function msgOut(html,{ai=false,you=false,earn=null,cls=''}={}){
   if(ai) meta+='<span class="ai">AI</span>';
   if(you) meta+='<span style="color:var(--blue);font-weight:600">You</span>';
   if(earn!=null) meta+=`<span class="earn num">+&cent;${earn.toFixed(2)}</span>`;
-  meta+=`<span class="num">${t()}</span>`;
+  meta+=`<span class="num">${tm()}</span>`;
   m.innerHTML=`<div class="bub ${cls}">${html}</div><div class="meta">${meta}</div>`;
   chat.appendChild(m);scrollDown();return m;}
 let typingEl=null;
-function typing(){const d=document.createElement('div');d.className='msg in';d.innerHTML='<div class="bub typing-b"><span class="td"><i></i><i></i><i></i></span></div>';
+function typing(){const d=document.createElement('div');d.className='msg in';
+  d.innerHTML='<div class="bub typing-b"><span class="td"><i></i><i></i><i></i></span></div>';
   chat.appendChild(d);scrollDown();typingEl=d;}
 function stopTyping(){if(typingEl){typingEl.remove();typingEl=null;}}
-function aihint(txt){const d=document.createElement('div');d.className='day';d.style.color='var(--blue)';d.textContent=txt;chat.appendChild(d);scrollDown();}
-const VBARS=[8,14,22,10,26,16,9,20,24,12,15,18,9,17,22,11].map(h=>`<i style="height:${h}px"></i>`).join('');
-const VBUB=`<div class="bub vb"><span class="pl"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l14 9-14 9z"/></svg></span><span class="w">${VBARS}</span><span class="dur num">0:07</span></div>`;
+function aihint(txt){const d=document.createElement('div');d.className='day';d.style.color='var(--blue)';d.innerHTML=txt;chat.appendChild(d);scrollDown();}
+function vbub(dur){const hs=[6,10,15,9,16,12,7,13,17,10,6,12,15,8,11,6];
+  const bars=hs.map(h=>`<i style="height:${h}px"></i>`).join('');
+  return `<div class="bub vb"><span class="pl"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l14 9-14 9z"/></svg></span><span class="w">${bars}</span><span class="dur num">${fmt(dur)}</span></div>`;}
 
 /* ── balance + coin ── */
 function rollBal(txt){const el=$('balAmt'),wrap=el.parentNode,ghost=el.cloneNode(true);
   ghost.removeAttribute('id');ghost.className='roll-out num';wrap.appendChild(ghost);
   el.textContent=txt;el.classList.remove('roll-in');void el.offsetWidth;el.classList.add('roll-in');
   setTimeout(()=>ghost.remove(),550);}
-// show earnings (coin + balance roll), fully displayed for 2s
 function earn(amount,label){
   return new Promise(res=>{
     bal+=amount; gained+=amount;
@@ -676,18 +686,20 @@ function earn(amount,label){
 
 /* ── coach mask + pointing finger ── */
 let spot=null,block=null,coachEl=null;
-function coach(target,{text,sub}={}){
+function coach(target,{text,sub,mask=true}={}){
   clearCoach();
-  block=document.createElement('div');block.className='ob-block';phone.appendChild(block);
-  target.classList.add('ob-spot');spot=target;
+  if(mask){block=document.createElement('div');block.className='ob-block';phone.appendChild(block);
+    target.classList.add('ob-spot');spot=target;}
   coachEl=document.createElement('div');coachEl.className='ob-coach';
   coachEl.innerHTML=`<div class="ch">&#10022; ONBOARDING<span class="st">follow the guide &rarr;</span></div><div class="cx">${text}</div>${sub?`<div class="cs">${sub}</div>`:''}`;
   phone.appendChild(coachEl);
   placeHand(target);
+  const c=coachEl;
   requestAnimationFrame(()=>{
+    if(!c||!c.isConnected||!target||!target.isConnected)return;
     const pr=phone.getBoundingClientRect(),tr=target.getBoundingClientRect();
-    const below=(tr.top-pr.top)<pr.height*0.48;
-    coachEl.style.top=below?(tr.bottom-pr.top+22)+'px':Math.max(66,tr.top-pr.top-coachEl.offsetHeight-22)+'px';
+    const below=(tr.top-pr.top)<pr.height*0.46;
+    c.style.top=below?(tr.bottom-pr.top+22)+'px':Math.max(60,tr.top-pr.top-c.offsetHeight-20)+'px';
   });
 }
 function placeHand(target){
@@ -700,100 +712,158 @@ function clearCoach(){if(spot){spot.classList.remove('ob-spot');spot=null;}
   [block,coachEl].forEach(e=>e&&e.remove());block=coachEl=null;
   hand.classList.remove('ob','guide');hand.style.display='none';}
 
-/* ── input plane (exact SITIN markup) ── */
+/* ── input plane (SITIN markup, NO send button) ── */
 function planeHTML(text){
   return `<div class="pk-own${text?' text':''}" id="plane">`+
     `<button class="icob" id="kbBtn" aria-label="Switch input mode"><svg class="ic-kb" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M9 14h6"/></svg><svg class="ic-mic" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/></svg></button>`+
     `<button class="voice" id="voiceBtn"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/></svg><span id="voiceLbl">Hold to talk</span><span class="wave" aria-hidden="true">${'<i></i>'.repeat(16)}</span><svg class="chev" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg></button>`+
-    `<input id="freetext" type="text" placeholder="Message${text?' Alex':''}…" aria-label="Write your reply">`+
+    `<input id="freetext" type="text" readonly inputmode="none" placeholder="Message${text?' Alex':''}…" aria-label="Write your reply">`+
     `<button class="icob" id="imgBtn" aria-label="Send a photo"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></button>`+
     `<button class="icob" id="giftBtn" aria-label="Send a gift"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></button>`+
-    `<button class="send" id="sendBtn" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2-6-8-2z"/></svg></button>`+
     `</div>`;
 }
-function setZone(html){zone.innerHTML=html||'';}
+function setZone(html){zone.innerHTML=html?`<div class="picker">${html}</div>`:'';}
+
+/* ── iOS keyboard ── */
+function popInput(){const p=$('plane');if(p){p.classList.remove('pop');void p.offsetWidth;p.classList.add('pop');}}
+function openKb(){
+  if(ioskb.classList.contains('open'))return;
+  ioskb.classList.add('open');
+  const pk=zone.querySelector('.picker'); if(pk) pk.classList.add('kbup');
+  popInput();
+  paneA.style.paddingBottom = ioskb.offsetHeight + 'px';
+  setTimeout(()=>{chat.scrollTop=chat.scrollHeight;},380);
+}
+function closeKb(){
+  if(!ioskb.classList.contains('open'))return;
+  ioskb.classList.remove('open');
+  const pk=zone.querySelector('.picker'); if(pk) pk.classList.remove('kbup');
+  paneA.style.paddingBottom='';
+}
+let retSend=null;
+ioskb.addEventListener('click',e=>{
+  const k=e.target.closest('.kk'); if(!k)return;
+  const inp=$('freetext'); if(!inp)return;
+  if(k.classList.contains('del')) inp.value=inp.value.slice(0,-1);
+  else if(k.classList.contains('ret')){ if(retSend) retSend(); }
+  else if(k.dataset.k!==undefined) inp.value+=k.dataset.k;
+});
+
+/* ── voice hold-to-record (hold=record, release=send, swipe up=cancel) ── */
+let rec=false,recSecs=0,recCancelled=false,recTimer=null,onVoiceDone=null;
+function positionTarget(){const pr=phone.getBoundingClientRect(),b=$('voiceBtn').getBoundingClientRect();
+  recTarget.style.bottom=(pr.bottom-b.top+4)+'px';}
+function isOnTarget(x,y){const r=recTarget.getBoundingClientRect();
+  const cx=r.left+r.width/2, cy=r.top+r.height/2;
+  return Math.hypot(x-cx,y-cy)<40;}
+function startRec(){
+  if(rec||!$('voiceBtn'))return;
+  rec=true;recSecs=0;recCancelled=false;clearCoach();
+  const vb=$('voiceBtn');vb.classList.add('rec');vb.classList.remove('cancel');
+  $('voiceLbl').textContent='0:00';
+  positionTarget();recScrim.classList.add('show');recTarget.classList.add('show');
+  recTimer=setInterval(()=>{recSecs++;$('voiceLbl').textContent=fmt(recSecs);},1000);
+}
+function moveRec(x,y){
+  if(!rec)return;const vb=$('voiceBtn');const hot=isOnTarget(x,y);
+  if(hot&&!recCancelled){recCancelled=true;recTarget.classList.add('hot');vb.classList.add('cancel');$('voiceLbl').textContent='Release to cancel';}
+  else if(!hot&&recCancelled){recCancelled=false;recTarget.classList.remove('hot');vb.classList.remove('cancel');$('voiceLbl').textContent=fmt(recSecs);}
+}
+function endRec(){
+  if(!rec)return;clearInterval(recTimer);rec=false;
+  const vb=$('voiceBtn');if(vb){vb.classList.remove('rec','cancel');$('voiceLbl').textContent='Hold to talk';}
+  recTarget.classList.remove('show','hot');recScrim.classList.remove('show');
+  if(recCancelled){ if(onVoiceDone) onVoiceDone(null); }
+  else{ const cb=onVoiceDone; if(cb) cb(Math.max(recSecs,4)); }
+}
+document.addEventListener('mousemove',e=>moveRec(e.clientX,e.clientY));
+document.addEventListener('mouseup',()=>endRec());
+document.addEventListener('touchmove',e=>{if(rec)moveRec(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
+document.addEventListener('touchend',()=>endRec());
+function armVoice(cb){onVoiceDone=cb;const vb=$('voiceBtn');
+  vb.addEventListener('mousedown',e=>{e.preventDefault();startRec();});
+  vb.addEventListener('touchstart',e=>{e.preventDefault();startRec();},{passive:false});}
 
 /* ============================================================
    FLOW  a -> b -> c -> d -> e -> f -> g
    ============================================================ */
 async function start(){
-  bal=100.12;gained=0;ci=1;$('balAmt').textContent='100.12';
-  chat.innerHTML='<div class="day">Today &middot; 9:41 PM</div>';setZone('');clearCoach();
-  $('modal').classList.remove('show');$('toast').classList.remove('show');
-  $('cliN').innerHTML=HERO.nm;$('cliV').innerHTML=HERO.stat;$('blockBtn').style.display='';
+  bal=100.12;gained=0;ci=1;$('balAmt').textContent='100.12';retSend=null;onVoiceDone=null;
+  chat.innerHTML='<div class="day">Today &middot; 9:41 PM</div>';setZone('');clearCoach();closeKb();
+  $('modal').classList.remove('show');$('toast').classList.remove('show');$('toast').querySelector('.sp').style.display='';
+  $('cliN').innerHTML=HERO.nm;$('cliV').innerHTML=HERO.stat;
   renderRail('onb');
   msgIn("Good evening gorgeous 😍 been thinking about you all day");
   await delay(750);stepA();
 }
 
-/* a. AI auto-reply -> earnings -> tip + Next */
+/* a. AI auto-reply -> earnings -> tip + Next (no Block on blue) */
 async function stepA(){
   aihint('AI is replying for you');
   typing();await delay(1250);stopTyping();
   msgOut("aww you&rsquo;re so sweet 🙈 my evening just got better talking to you",{ai:true,earn:0.10});
   await delay(450);
   await earn(0.10,'AI reply earned');
-  setZone(`<div class="picker"><div class="ob-tip"><span class="ti">🤖</span><span class="tx">AI replies for you and earns money &mdash; you don&rsquo;t have to lift a finger.</span></div><button class="ob-next" id="nx">Next &rarr;</button></div>`);
+  setZone(`<div class="ob-tip"><span class="ti">🤖</span><span class="tx">AI replies for you and earns money &mdash; you don&rsquo;t have to lift a finger.</span></div><button class="ob-next" id="nx">Next &rarr;</button>`);
   $('nx').onclick=()=>stepB();
 }
 
-/* b. he replies -> two options + spotlight guide */
+/* b. two options + spotlight guide */
 async function stepB(){
   setZone('');
   typing();await delay(1150);stopTyping();
   msgIn("haha what are you up to tonight babe? 😏");
   await delay(500);
-  setZone(`<div class="picker" id="pkc"><div class="pk-ct">Choose one reply to send</div>`+
-    `<button class="opt" data-t="just thinking about who&rsquo;s gonna spoil me tonight 😏"><span class="txt">just thinking about who&rsquo;s gonna spoil me tonight 😏</span><span class="go">&rsaquo;</span></button>`+
-    `<button class="opt" data-t="nothing much, kinda wish you were here with me 🥺"><span class="txt">nothing much, kinda wish you were here with me 🥺</span><span class="go">&rsaquo;</span></button></div>`);
+  setZone(`<div class="pk-ct">Choose one reply to send</div>`+
+    `<button class="opt" id="opt0" data-t="just thinking about who&rsquo;s gonna spoil me tonight 😏"><span class="txt">just thinking about who&rsquo;s gonna spoil me tonight 😏</span><span class="go">&rsaquo;</span></button>`+
+    `<button class="opt" data-t="nothing much, kinda wish you were here with me 🥺"><span class="txt">nothing much, kinda wish you were here with me 🥺</span><span class="go">&rsaquo;</span></button>`);
   await delay(160);
-  coach($('pkc'),{text:'Pick the reply you think fits best and send it to him',sub:'Choose the line that draws him in the most 👇'});
-  document.querySelectorAll('#pkc .opt').forEach(o=>o.onclick=()=>chooseOpt(o));
+  coach(zone.querySelector('.picker'),{text:'Pick the reply you think fits best and send it to him',sub:'Choose the line that draws him in the most 👇'});
+  zone.querySelectorAll('.opt').forEach(o=>o.onclick=()=>chooseOpt(o));
 }
 async function chooseOpt(o){
   o.classList.add('hit');await delay(200);
   const txt=o.getAttribute('data-t');clearCoach();setZone('');
   msgOut(txt,{you:true,earn:0.30});
-  await delay(450);
-  await earn(0.30,'Quick pick earned');
-  stepC();
+  await delay(450);await earn(0.30,'Quick pick earned');stepC();
 }
 
-/* c. he replies -> guide manual reply */
+/* c. manual reply — tap field raises keyboard, RETURN sends (no send button) */
 async function stepC(){
   typing();await delay(1150);stopTyping();
   msgIn("you&rsquo;re trouble 😩 i like that. tell me something real about you");
   await delay(500);
-  setZone(`<div class="picker">${planeHTML(true)}</div>`);
+  setZone(planeHTML(true));
   await delay(150);
-  coach($('freetext'),{text:'A friendly reply earns you more',sub:'Type a message to him yourself ✍️'});
-  $('freetext').focus();
-  const fire=async()=>{
-    const v=$('freetext').value.trim();clearCoach();setZone('');
+  coach($('freetext'),{text:'A friendly reply earns you more',sub:'Tap the field and type your reply ✍️'});
+  const doSend=async()=>{
+    const inp=$('freetext');const v=(inp.value||'').trim();
+    retSend=null;clearCoach();closeKb();setZone('');
     msgOut(v?v.replace(/</g,'&lt;'):"you gotta earn my secrets first 😉 tell me about you",{you:true,earn:0.50});
-    await delay(450);
-    await earn(0.50,'Manual reply earned');
-    stepD();
+    await delay(450);await earn(0.50,'Manual reply earned');stepD();
   };
-  $('sendBtn').onclick=fire;
-  $('freetext').addEventListener('keydown',e=>{if(e.key==='Enter')fire();});
+  $('freetext').addEventListener('click',()=>{
+    if(ioskb.classList.contains('open'))return;
+    clearCoach();openKb();retSend=doSend;
+    setTimeout(()=>coach($('ioskb').querySelector('.kk.ret'),{text:'Tap “return” to send',sub:'No send button — the keyboard’s return key sends it',mask:false}),120);
+  });
 }
 
-/* d. he replies -> guide voice note */
+/* d. voice note — hold to record / release to send / swipe up to cancel */
 async function stepD(){
   typing();await delay(1150);stopTyping();
   msgIn("i love your energy 🔥 say it to me, i wanna hear your voice");
   await delay(500);
-  setZone(`<div class="picker">${planeHTML(false)}</div>`);
+  setZone(planeHTML(false));
   await delay(150);
-  coach($('voiceBtn'),{text:'Send him a voice message to earn even more',sub:'Real voice doubles his trust &mdash; hold the blue bar 🎧'});
-  $('voiceBtn').onclick=async()=>{
-    clearCoach();setZone('');
-    msgOut(VBUB,{you:true,earn:1.20});
-    await delay(500);
-    await earn(1.20,'Voice message earned');
-    stepE();
-  };
+  const showCoach=()=>coach($('voiceBtn'),{text:'Send him a voice message to earn more',sub:'Hold to record · release to send · swipe up to cancel 🎤'});
+  showCoach();
+  armVoice(async(dur)=>{
+    if(dur==null){ showCoach(); return; } // cancelled -> let her retry
+    setZone('');
+    msgOut(vbub(dur),{you:true,earn:1.20});
+    await delay(500);await earn(1.20,'Voice message earned');stepE();
+  });
 }
 
 /* e. "send me a pic?" -> guide selfie */
@@ -801,15 +871,13 @@ async function stepE(){
   typing();await delay(1150);stopTyping();
   msgIn("okay now i&rsquo;m obsessed 😍 send me a pic? 🥺");
   await delay(500);
-  setZone(`<div class="picker">${planeHTML(false)}</div>`);
+  setZone(planeHTML(false));
   await delay(150);
-  coach($('imgBtn'),{text:'Send a selfie &mdash; he&rsquo;ll be way more willing to spend on you',sub:'One photo boosts his willingness to pay 📈'});
+  coach($('imgBtn'),{text:'Send a selfie — he&rsquo;ll be way more willing to spend on you',sub:'One photo boosts his willingness to pay 📈'});
   $('imgBtn').onclick=async()=>{
     clearCoach();setZone('');
     msgOut('<div class="ph">📸 Your selfie</div>',{you:true,earn:2.50,cls:'pb'});
-    await delay(600);
-    await earn(2.50,'Selfie earned');
-    stepF();
+    await delay(600);await earn(2.50,'Selfie earned');stepF();
   };
 }
 
@@ -818,7 +886,7 @@ async function stepF(){
   typing();await delay(1050);stopTyping();
   msgIn("you&rsquo;re stunning 😍 i&rsquo;m gonna spoil you so good tonight 💸");
   await delay(700);
-  setZone(''); // bottom input bar disappears
+  setZone('');
   $('modalTot').innerHTML='&cent;'+gained.toFixed(2);
   $('modal').classList.add('show');
   $('modalCta').onclick=()=>{$('modal').classList.remove('show');stepG();};
@@ -834,14 +902,14 @@ async function stepG(){
   }
   $('toast').classList.add('show');
   await delay(1900);$('toast').classList.remove('show');await delay(300);
-  const u=REAL_QUEUE[0];ci=1;
-  renderRail('real');
+  const u=REAL_QUEUE[0];ci=1;renderRail('real');
   $('cliN').innerHTML=u.nm;$('cliV').innerHTML=u.stat;
   chat.innerHTML='<div class="day">Switched &middot; real user</div>';
-  msgIn(u.msg);
-  await delay(400);
+  msgIn(u.msg);await delay(400);
   aihint('AI has taken over &middot; earning for you');
-  setZone(`<div class="picker">${planeHTML(false)}</div>`);
+  setZone(planeHTML(false));
+  armVoice(async(dur)=>{if(dur==null)return; setZone(planeHTML(false)); msgOut(vbub(dur),{you:true}); armVoiceReattach();});
+  function armVoiceReattach(){armVoice(async(d)=>{if(d==null)return;setZone(planeHTML(false));msgOut(vbub(d),{you:true});armVoiceReattach();});}
 }
 
 $('replay').onclick=()=>{document.querySelectorAll('.ob-modal,.ob-toast').forEach(e=>e.classList.remove('show'));start();};
